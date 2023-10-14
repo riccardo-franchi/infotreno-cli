@@ -7,11 +7,17 @@ mod stations;
 
 #[tokio::main]
 async fn main() {
+    println!("Parsing trains...");
+
     let trains = parse_trains::parse_trains()
         .await
         .expect("An error occurred");
 
+    println!("Writing to file...");
+
     parse_trains::write_to_file(&trains, &Path::new("treni.txt")).expect("could not write to file");
+
+    println!("Plotting...");
 
     let station_names: Vec<&str> = stations::STATION_DECAMETERS
         .iter()
@@ -34,5 +40,5 @@ async fn main() {
         })
         .collect();
 
-    plot::plot_trains(&filtered_trains[5]);
+    plot::plot_trains(&filtered_trains);
 }
