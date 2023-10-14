@@ -4,9 +4,16 @@ use std::io::Write;
 use std::path::Path;
 
 #[derive(Debug)]
+pub enum TrainType {
+    REG,
+    IC,
+}
+
+#[derive(Debug)]
 pub struct Train {
     pub code: u32,
     pub origin_id: String,
+    pub train_type: TrainType,
     pub stops: Vec<Stop>,
 }
 
@@ -25,15 +32,15 @@ pub async fn parse_trains() -> Result<Vec<Train>, Box<dyn std::error::Error>> {
     let mut trains: Vec<Train> = Vec::new();
     trains.reserve_exact(train_codes.len());
 
-    for code in train_codes {
-        let timestamp = Utc::now()
-            .date_naive()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .timestamp()
-            * 1000
-            - 7200000;
+    let timestamp = Utc::now()
+        .date_naive()
+        .and_hms_opt(0, 0, 0)
+        .unwrap()
+        .timestamp()
+        * 1000
+        - 7200000;
 
+    for code in train_codes {
         let url = format!(
             "http://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/cercaNumeroTrenoTrenoAutocomplete/{}",
             code
@@ -52,18 +59,25 @@ pub async fn parse_trains() -> Result<Vec<Train>, Box<dyn std::error::Error>> {
             .trim()
             .to_string();
 
-        let mut train = Train {
-            code,
-            origin_id,
-            stops: Vec::new(),
-        };
-
         let url = format!(
             "http://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/andamentoTreno/{}/{}/{}",
-            train.origin_id, train.code, timestamp
+            origin_id, code, timestamp
         );
 
         let res = reqwest::get(url).await?.json::<serde_json::Value>().await?;
+
+        let train_type = match res["categoria"].as_str().unwrap() {
+            "REG" => TrainType::REG,
+            "IC" => TrainType::IC,
+            _ => panic!("Unknown train type"),
+        };
+
+        let mut train = Train {
+            code,
+            origin_id,
+            train_type,
+            stops: Vec::new(),
+        };
 
         for f in res["fermate"].as_array().unwrap() {
             let station_name = f["stazione"].as_str().unwrap().to_string();
@@ -133,7 +147,7 @@ fn parse_time(time: Option<u64>) -> Option<NaiveTime> {
     })
 }
 
-pub fn write_to_file(trains: Vec<Train>, path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+pub fn write_to_file(trains: &Vec<Train>, path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let mut file = File::create(path)?;
     writeln!(file, "{:#?}", trains)?;
 
