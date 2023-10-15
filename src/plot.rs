@@ -1,10 +1,11 @@
 use chrono::Timelike;
 use plotters::{prelude::*, style::full_palette};
+use std::path::Path;
 
 use crate::parse_trains::{Train, TrainType};
 use crate::stations::STATION_DECAMETERS;
 
-pub fn plot_trains(trains: &[Train]) {
+pub fn plot_trains(trains: &[Train], path: &Path) {
     const MAX_DECAMETER: u32 = STATION_DECAMETERS[STATION_DECAMETERS.len() - 1].1;
 
     let min_time = trains
@@ -18,7 +19,7 @@ pub fn plot_trains(trains: &[Train]) {
         .max()
         .unwrap();
 
-    let root_drawing_area = BitMapBackend::new("0.1.png", (4000, 1000)).into_drawing_area();
+    let root_drawing_area = BitMapBackend::new(path, (4000, 1000)).into_drawing_area();
 
     root_drawing_area.fill(&full_palette::GREY_200).unwrap();
 
@@ -45,7 +46,7 @@ pub fn plot_trains(trains: &[Train]) {
             },
         )
         .x_label_formatter(&|x| {
-            if x % 3 == 0 {
+            if x % 8 == 0 {
                 let hour = *x / 60;
                 let minute = *x % 60;
                 format!("{:02}:{:02}", hour, minute)
@@ -80,6 +81,8 @@ pub fn plot_trains(trains: &[Train]) {
         let line_color = match train.train_type {
             TrainType::REG => full_palette::BLUE,
             TrainType::IC => full_palette::GREEN,
+            TrainType::EC => full_palette::YELLOW,
+            TrainType::AV => full_palette::RED,
         };
 
         chart

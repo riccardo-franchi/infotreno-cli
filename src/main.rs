@@ -1,5 +1,6 @@
+use chrono::{Datelike, Utc};
 use parse_trains::{Stop, Train};
-use std::path::Path;
+use std::{fs, path::Path};
 
 mod parse_trains;
 mod plot;
@@ -15,7 +16,16 @@ async fn main() {
 
     println!("Writing to file...");
 
-    parse_trains::write_to_file(&trains, &Path::new("treni.txt")).expect("could not write to file");
+    let date = Utc::now().date_naive();
+    let day = date.day();
+    let month = date.month();
+    let year = date.year();
+
+    fs::create_dir_all(Path::new("data")).expect("could not create data directory");
+    let filename = format!("data/treni_{}_{}_{}", day, month, year);
+
+    parse_trains::write_to_file(&trains, &Path::new(&(filename.clone() + ".txt")))
+        .expect("could not write to file");
 
     println!("Plotting...");
 
@@ -24,7 +34,7 @@ async fn main() {
         .map(|&(name, _)| name)
         .collect();
 
-    let filtered_trains: Vec<Train> = trains
+    let mut filtered_trains: Vec<Train> = trains
         .into_iter()
         .map(|t| {
             let filtered_stops: Vec<Stop> = t
@@ -40,5 +50,11 @@ async fn main() {
         })
         .collect();
 
-    plot::plot_trains(&filtered_trains);
+    for i in (0..filtered_trains.len()).rev() {
+        if filtered_trains[i].stops.len() == 0 {
+            filtered_trains.remove(i);
+        }
+    }
+
+    plot::plot_trains(&filtered_trains, &Path::new(&(filename + ".png")));
 }

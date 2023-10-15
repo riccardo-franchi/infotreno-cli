@@ -7,6 +7,8 @@ use std::path::Path;
 pub enum TrainType {
     REG,
     IC,
+    EC,
+    AV,
 }
 
 #[derive(Debug)]
@@ -48,16 +50,21 @@ pub async fn parse_trains() -> Result<Vec<Train>, Box<dyn std::error::Error>> {
 
         let res = reqwest::get(url).await?.text().await?;
 
-        let origin_id = res
-            .lines()
-            // .filter(|l| START_END_STATIONS.iter().any(|&s| l.contains(s)))
-            .nth(0)
-            .expect("could not find train with given code")
-            .split('-')
-            .nth(2)
-            .unwrap()
-            .trim()
-            .to_string();
+        let lines = res.lines().collect::<Vec<&str>>();
+
+        println!("{:?}", lines);
+
+        let origin_id = lines[0].split('-').nth(2).unwrap().trim().to_string();
+
+        // let origin_id = res
+        //     .lines()
+        //     .next()
+        //     .expect("could not find train with given code")
+        //     .split('-')
+        //     .nth(2)
+        //     .unwrap()
+        //     .trim()
+        //     .to_string();
 
         let url = format!(
             "http://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/andamentoTreno/{}/{}/{}",
@@ -69,6 +76,8 @@ pub async fn parse_trains() -> Result<Vec<Train>, Box<dyn std::error::Error>> {
         let train_type = match res["categoria"].as_str().unwrap() {
             "REG" => TrainType::REG,
             "IC" => TrainType::IC,
+            "EC" => TrainType::EC,
+            "" => TrainType::AV,
             _ => panic!("Unknown train type"),
         };
 
