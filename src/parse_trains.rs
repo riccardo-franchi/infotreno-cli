@@ -34,14 +34,6 @@ pub async fn parse_trains() -> Result<Vec<Train>, Box<dyn std::error::Error>> {
     let mut trains: Vec<Train> = Vec::new();
     trains.reserve_exact(train_codes.len());
 
-    let timestamp = Utc::now()
-        .date_naive()
-        .and_hms_opt(0, 0, 0)
-        .unwrap()
-        .timestamp()
-        * 1000
-        - 7200000;
-
     for code in train_codes {
         let url = format!(
             "http://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/cercaNumeroTrenoTrenoAutocomplete/{}",
@@ -50,21 +42,27 @@ pub async fn parse_trains() -> Result<Vec<Train>, Box<dyn std::error::Error>> {
 
         let res = reqwest::get(url).await?.text().await?;
 
-        let lines = res.lines().collect::<Vec<&str>>();
+        const IC_START_OR_END_STATIONS: [&str; 3] =
+            ["MILANO CENTRALE", "VENTIMIGLIA", "ROMA TERMINI"];
 
-        println!("{:?}", lines);
+        let line_content = res
+            .lines()
+            .filter(|l| {
+                // Filter out lines that are not InterCity trains
+                if code < 500 || code >= 800 {
+                    true
+                } else {
+                    IC_START_OR_END_STATIONS.iter().any(|&s| l.contains(s))
+                }
+            })
+            .next()
+            .unwrap()
+            .split('-')
+            .collect::<Vec<&str>>();
 
-        let origin_id = lines[0].split('-').nth(2).unwrap().trim().to_string();
+        let origin_id = line_content.iter().nth(2).unwrap().trim().to_string();
 
-        // let origin_id = res
-        //     .lines()
-        //     .next()
-        //     .expect("could not find train with given code")
-        //     .split('-')
-        //     .nth(2)
-        //     .unwrap()
-        //     .trim()
-        //     .to_string();
+        let timestamp = line_content.iter().rev().next().unwrap().trim().to_string();
 
         let url = format!(
             "http://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/andamentoTreno/{}/{}/{}",
