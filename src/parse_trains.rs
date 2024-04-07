@@ -47,14 +47,11 @@ pub async fn parse_trains() -> Result<Vec<Train>, Box<dyn std::error::Error>> {
 
         let line_content = res
             .lines()
-            .filter(|l| {
+            .filter(|l| 
                 // Filter out lines that are not InterCity trains
-                if code < 500 || code >= 800 {
-                    true
-                } else {
-                    IC_START_OR_END_STATIONS.iter().any(|&s| l.contains(s))
-                }
-            })
+                (code < 500 || code >= 800)
+                    || IC_START_OR_END_STATIONS.iter().any(|&s| l.contains(s))
+            )
             .next()
             .unwrap()
             .split('-')
@@ -72,11 +69,11 @@ pub async fn parse_trains() -> Result<Vec<Train>, Box<dyn std::error::Error>> {
         let res = reqwest::get(url).await?.json::<serde_json::Value>().await?;
 
         let train_type = match res["categoria"].as_str().unwrap() {
-            "REG" => TrainType::REG,
+            "REG" | "IR" => TrainType::REG,
             "IC" => TrainType::IC,
             "EC" => TrainType::EC,
             "" => TrainType::AV,
-            _ => panic!("Unknown train type"),
+            _ => panic!("Unknown train type. Response:\n{:#?}", res),
         };
 
         let mut train = Train {
@@ -126,7 +123,7 @@ async fn parse_numbers() -> Result<Vec<u32>, Box<dyn std::error::Error>> {
     let year = date.year();
 
     let url = format!(
-        "https://trainstats.altervista.org/exportcsv.php?data={}_{}_{}",
+        "https://trainstats.altervista.org/exportcsv.php?data={:0>2}_{:0>2}_{}",
         day, month, year
     );
 
