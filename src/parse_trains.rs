@@ -8,6 +8,7 @@ pub enum TrainType {
     REG,
     IC,
     EC,
+    EXP,
     AV,
 }
 
@@ -72,6 +73,7 @@ pub async fn parse_trains() -> Result<Vec<Train>, Box<dyn std::error::Error>> {
             "REG" | "IR" => TrainType::REG,
             "IC" => TrainType::IC,
             "EC" => TrainType::EC,
+            "EXP" => TrainType::EXP,
             "" => TrainType::AV,
             _ => panic!("Unknown train type. Response:\n{:#?}", res),
         };

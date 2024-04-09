@@ -82,6 +82,7 @@ pub fn plot_trains(trains: &[Train], path: &Path) {
             TrainType::REG => full_palette::BLUE,
             TrainType::IC => full_palette::GREEN,
             TrainType::EC => full_palette::YELLOW,
+            TrainType::EXP => full_palette::PURPLE,
             TrainType::AV => full_palette::RED,
         };
 
