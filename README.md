@@ -10,8 +10,9 @@ Viaggiatreno API documentation:
 
 ## Roadmap
 - Plot currently circulating trains between two sections
-- Print currently circulating trains between two sections (filtering by train type is possible)
-- Print all currently circulating trains
+- Print currently circulating trains between two sections of main lines (filtering by train type is possible)
+- Print all currently circulating long distance trains
+- Print currently circulating trains between two sections on a branch regional line
 - Print arriving and departing trains at a certain station
 - Print train punctuality informations
 - Print train delay history for a certain train at a certain station
