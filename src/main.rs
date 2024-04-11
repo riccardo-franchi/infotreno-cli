@@ -2,10 +2,12 @@ use chrono::{Datelike, Utc};
 use colored::Colorize;
 use parse_trains::{Stop, Train};
 use std::{env, fs, path::Path};
+use track_train::track;
 
 mod parse_trains;
 mod plot;
 mod stations;
+mod track_train;
 
 async fn plot() {
     println!("Parsing trains...");
@@ -65,13 +67,31 @@ async fn main() {
 
     let help_message = format!(
         "Usage. Available commands:
-        {0}
-            plot currently circulating trains between SAVONA and VENTIMIGLIA.",
-        "p, plot".bold()
+        {0} {1} 
+            print information about train punctuality.
+            Note: if a given {1} corresponds to multiple trains, a prompt will ask to choose one.
+
+        {2}
+            plot currently circulating trains between SAVONA and VENTIMIGLIA.
+
+        {3}
+            view this help message.",
+        "t, track".bold(),
+        "<train_code>".underline(),
+        "p, plot".bold(),
+        "h, help".bold()
     );
 
     if let Some(command) = args_iter.next() {
         match command.as_str() {
+            "track" | "t" => {
+                if let Some(code) = args_iter.next() {
+                    let code = code.parse::<u32>().expect("Invalid train code.");
+                    track(code).await.expect("An error occurred.");
+                } else {
+                    println!("Please provide a train code.");
+                }
+            }
             "plot" | "p" => {
                 plot().await;
             }
