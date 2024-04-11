@@ -66,18 +66,20 @@ async fn main() {
     let mut args_iter = env::args().skip(1);
 
     let help_message = format!(
-        "Usage. Available commands:
-        {0} {1} 
-            print information about train punctuality.
-            Note: if a given {1} corresponds to multiple trains, a prompt will ask to choose one.
-
-        {2}
-            plot currently circulating trains between SAVONA and VENTIMIGLIA.
+        "Utilizzo. Comandi disponibili:
+        {0} {1} {2}
+            stampa informazioni sul ritardo del treno.
+            Nota: se un certo {1} corrisponde a più treni, verrà chiesto di sceglierne uno.
+            In alternativa, è possibile specificare un indice (parametro {2}) per selezionare direttamente il treno.
 
         {3}
-            view this help message.",
+            grafica i treni in circolazione tra SAVONA e VENTIMIGLIA.
+
+        {4}
+            visualizza questo messaggio.",
         "t, track".bold(),
         "<train_code>".underline(),
+        "[<index>]".underline(),
         "p, plot".bold(),
         "h, help".bold()
     );
@@ -86,10 +88,14 @@ async fn main() {
         match command.as_str() {
             "track" | "t" => {
                 if let Some(code) = args_iter.next() {
-                    let code = code.parse::<u32>().expect("Invalid train code.");
-                    track(code).await.expect("An error occurred.");
+                    let code = code.parse::<u32>().expect("Codice invalido.");
+                    let index = args_iter
+                        .next()
+                        .map(|arg| arg.parse::<usize>().expect("Indice invalido."));
+
+                    track(code, index).await.expect("C'è stato un errore");
                 } else {
-                    println!("Please provide a train code.");
+                    println!("Inserire un codice valido.");
                 }
             }
             "plot" | "p" => {
@@ -99,7 +105,7 @@ async fn main() {
                 println!("{help_message}");
             }
             _ => {
-                println!("Unknown command, run with 'help' to see available commands.");
+                println!("Comando sconosciuto, usa 'help' per visualizzare i comandi disponibili.");
             }
         }
     } else {
