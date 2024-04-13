@@ -67,11 +67,14 @@ async fn print_train_track_info(
     let is_not_departured = res["nonPartito"].as_bool().unwrap_or_default();
 
     if is_not_departured {
+        let departure_time = res["compOrarioPartenza"].as_str().unwrap_or("--:--");
+
         println!(
-            "Treno {}, {} - {} \nNon ancora partito.",
+            "Treno {}, {} - {} \nNon ancora partito.\nPartenza prevista alle ore {}.",
             train_label.bold(),
             origin_station.cyan(),
-            destination_station.cyan()
+            destination_station.cyan(),
+            departure_time
         );
         return Ok(());
     }
