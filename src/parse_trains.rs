@@ -48,19 +48,18 @@ pub async fn parse_trains() -> Result<Vec<Train>, Box<dyn std::error::Error>> {
 
         let line_content = res
             .lines()
-            .filter(|l| 
+            .find(|l| 
                 // Filter out lines that are not InterCity trains
-                (code < 500 || code >= 800)
+                !(500..800).contains(&code)
                     || IC_START_OR_END_STATIONS.iter().any(|&s| l.contains(s))
             )
-            .next()
             .unwrap()
             .split('-')
             .collect::<Vec<&str>>();
 
-        let origin_id = line_content.iter().nth(2).unwrap().trim().to_string();
+        let origin_id = line_content.get(2).unwrap().trim().to_string();
 
-        let timestamp = line_content.iter().rev().next().unwrap().trim().to_string();
+        let timestamp = line_content.last().unwrap().trim().to_string();
 
         let url = format!(
             "http://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/andamentoTreno/{}/{}/{}",

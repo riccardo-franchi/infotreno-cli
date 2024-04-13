@@ -26,7 +26,7 @@ async fn plot() {
     fs::create_dir_all(Path::new("data")).expect("could not create data directory");
     let filename = format!("data/treni_{}_{}_{}", day, month, year);
 
-    parse_trains::write_to_file(&trains, &Path::new(&(filename.clone() + ".txt")))
+    parse_trains::write_to_file(&trains, Path::new(&(filename.clone() + ".txt")))
         .expect("could not write to file");
 
     println!("Plotting...");
@@ -53,12 +53,12 @@ async fn plot() {
         .collect();
 
     for i in (0..filtered_trains.len()).rev() {
-        if filtered_trains[i].stops.len() == 0 {
+        if filtered_trains[i].stops.is_empty() {
             filtered_trains.remove(i);
         }
     }
 
-    plot::plot_trains(&filtered_trains, &Path::new(&(filename + ".png")));
+    plot::plot_trains(&filtered_trains, Path::new(&(filename + ".png")));
 }
 
 #[tokio::main]

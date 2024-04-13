@@ -13,7 +13,7 @@ pub async fn track(code: u32, index: Option<usize>) -> Result<(), Box<dyn std::e
 
     let lines: Vec<_> = res.lines().collect();
 
-    if lines.len() == 0 {
+    if lines.is_empty() {
         println!("Nessun treno trovato con il codice inserito");
         return Ok(());
     }
