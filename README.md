@@ -4,6 +4,8 @@ It retrieves circulating train numbers from https://trainstats.altervista.org (o
 
 Currently station data is hardcoded, and only works with the Savona-Ventimiglia railway line.
 
+With command "track", it is possible to track a train and retrieve information on its delay.
+
 Viaggiatreno API documentation: 
 - https://github.com/roughconsensusandrunningcode/TrainMonitor/wiki/API-del-sistema-Viaggiatreno
 - https://github.com/sabas/trenitalia.
@@ -14,6 +16,5 @@ Viaggiatreno API documentation:
 - Print all currently circulating long distance trains
 - Print currently circulating trains between two sections on a branch regional line
 - Print arriving and departing trains at a certain station
-- Print train punctuality informations
 - Print train delay history for a certain train at a certain station
 - Format and print _Notizie infomobilità_
