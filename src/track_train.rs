@@ -59,23 +59,40 @@ async fn print_train_track_info(
 
     let res = reqwest::get(url).await?.json::<serde_json::Value>().await?;
 
-    // TODO: use international origin and destination when available
+    let international_origin = res["origineEstera"].as_str();
+    let international_destination = res["destinazioneEstera"].as_str();
 
     let origin_station = res["origine"].as_str().unwrap_or("--");
     let destination_station = res["destinazione"].as_str().unwrap_or("--");
+
+    let mut itinerary = format!("{} - {}", origin_station.cyan(), destination_station.cyan());
+    if let Some(international_origin) = international_origin {
+        itinerary = format!("{} - {}", international_origin.cyan(), itinerary);
+    }
+    if let Some(international_destination) = international_destination {
+        itinerary = format!("{} - {}", itinerary, international_destination.cyan());
+    }
 
     let train_label = res["compNumeroTreno"].as_str().unwrap().trim();
 
     let is_not_departured = res["nonPartito"].as_bool().unwrap_or_default();
 
     if is_not_departured {
-        let departure_time = res["compOrarioPartenza"].as_str().unwrap_or("--:--");
+        let departure_time = if international_origin.is_some() {
+            parse_time(res["oraPartenzaEstera"].as_u64())
+                .map(|t| t.format("%H:%M").to_string())
+                .unwrap_or("--:--".to_string())
+        } else {
+            res["compOrarioPartenza"]
+                .as_str()
+                .unwrap_or("--:--")
+                .to_string()
+        };
 
         println!(
-            "Treno {}, {} - {} \nNon ancora partito.\nPartenza prevista alle ore {}.",
+            "Treno {}, {} \nNon ancora partito.\nPartenza prevista alle ore {}.",
             train_label.bold(),
-            origin_station.cyan(),
-            destination_station.cyan(),
+            itinerary,
             departure_time
         );
         return Ok(());
@@ -97,14 +114,13 @@ async fn print_train_track_info(
 
     let is_arrived = stops.iter().last().unwrap()["actualFermataType"]
         .as_u64()
-        .expect("AAAAA")
+        .unwrap()
         == 1;
 
     println!(
-        "Treno {}, {} - {} \nUltimo rilevamento ({}):\n\t{}, {}",
+        "Treno {}, {} \nUltimo rilevamento ({}):\n\t{}, {}",
         train_label.bold(),
-        origin_station.cyan(),
-        destination_station.cyan(),
+        itinerary,
         last_update_time,
         last_update_station.cyan(),
         delay.unwrap_or("--".to_string()).bold()
