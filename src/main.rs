@@ -2,7 +2,6 @@ use chrono::{Datelike, Utc};
 use colored::Colorize;
 use parse_trains::{Stop, Train};
 use std::{env, fs, path::Path};
-use track_train::track;
 
 mod parse_trains;
 mod plot;
@@ -93,7 +92,9 @@ async fn main() {
                         .next()
                         .map(|arg| arg.parse::<usize>().expect("Indice invalido."));
 
-                    track(code, index).await.expect("C'è stato un errore");
+                    track_train::track(code, index)
+                        .await
+                        .expect("C'è stato un errore");
                 } else {
                     println!("Inserire un codice valido.");
                 }
