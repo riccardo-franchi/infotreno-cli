@@ -60,8 +60,7 @@ pub fn plot_trains(trains: &[Train], path: &Path) {
         .unwrap();
 
     for train in trains {
-        let mut points: Vec<(u32, u32)> = Vec::new();
-        points.reserve(train.stops.len() * 2);
+        let mut points: Vec<(u32, u32)> = Vec::with_capacity(train.stops.len() * 2);
 
         for stop in &train.stops {
             let dam = STATION_DECAMETERS
