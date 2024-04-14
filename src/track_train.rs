@@ -2,6 +2,7 @@ use std::io;
 
 use chrono::NaiveTime;
 use colored::Colorize;
+use serde_json::Value;
 
 pub async fn track(code: u32, index: Option<usize>) -> Result<(), Box<dyn std::error::Error>> {
     let url = format!(
@@ -79,9 +80,7 @@ async fn print_train_track_info(
 
     if is_not_departured {
         let departure_time = if international_origin.is_some() {
-            parse_time(res["oraPartenzaEstera"].as_u64())
-                .map(|t| t.format("%H:%M").to_string())
-                .unwrap_or("--:--".to_string())
+            format_time(&res["oraPartenzaEstera"])
         } else {
             res["compOrarioPartenza"]
                 .as_str()
@@ -106,13 +105,11 @@ async fn print_train_track_info(
         }
     });
     let last_update_station = res["stazioneUltimoRilevamento"].as_str().unwrap_or("--");
-    let last_update_time = parse_time(res["oraUltimoRilevamento"].as_u64())
-        .map(|t| t.format("%H:%M").to_string())
-        .unwrap_or("--:--".to_string());
+    let last_update_time = format_time(&res["oraUltimoRilevamento"]);
 
     let stops = res["fermate"].as_array().unwrap();
 
-    let is_arrived = stops.iter().last().unwrap()["actualFermataType"]
+    let is_arrived = stops.iter().last().expect("Nessuna fermata rilevata.")["actualFermataType"]
         .as_u64()
         .unwrap()
         == 1;
@@ -137,9 +134,8 @@ async fn print_train_track_info(
             }
 
             let next_stop = f["stazione"].as_str().unwrap();
-            let arrival_time = parse_time(f["arrivo_teorico"].as_u64())
-                .map(|t| t.format("%H:%M").to_string())
-                .unwrap_or("--:--".to_string());
+            let arrival_time = format_time(&f["arrivo_teorico"]);
+
             println!(
                 "\nProssima fermata: {} (arrivo teorico: {})",
                 next_stop.cyan(),
@@ -150,6 +146,12 @@ async fn print_train_track_info(
     }
 
     Ok(())
+}
+
+fn format_time(time: &Value) -> String {
+    parse_time(time.as_u64())
+        .map(|t| t.format("%H:%M").to_string())
+        .unwrap_or("--:--".to_string())
 }
 
 fn parse_time(time: Option<u64>) -> Option<NaiveTime> {
