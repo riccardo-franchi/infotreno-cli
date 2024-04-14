@@ -59,6 +59,8 @@ async fn print_train_track_info(
 
     let res = reqwest::get(url).await?.json::<serde_json::Value>().await?;
 
+    // TODO: use international origin and destination when available
+
     let origin_station = res["origine"].as_str().unwrap_or("--");
     let destination_station = res["destinazione"].as_str().unwrap_or("--");
 
@@ -107,6 +109,7 @@ async fn print_train_track_info(
         last_update_station.cyan(),
         delay.unwrap_or("--".to_string()).bold()
     );
+
     if is_arrived {
         println!("Arrivato a destinazione.");
     } else {

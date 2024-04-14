@@ -113,31 +113,3 @@ async fn main() {
         println!("{help_message}");
     }
 }
-
-#[tokio::main]
-async fn main() {
-    let mut args_iter = env::args().skip(1);
-
-    let help_message = format!(
-        "Usage. Available commands:
-        {0}
-            plot currently circulating trains between SAVONA and VENTIMIGLIA.",
-        "p, plot".bold()
-    );
-
-    if let Some(command) = args_iter.next() {
-        match command.as_str() {
-            "plot" | "p" => {
-                plot().await;
-            }
-            "help" | "h" => {
-                println!("{help_message}");
-            }
-            _ => {
-                println!("Unknown command, run with 'help' to see available commands.");
-            }
-        }
-    } else {
-        println!("{help_message}");
-    }
-}
