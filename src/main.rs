@@ -1,12 +1,39 @@
 use chrono::{Datelike, Utc};
-use colored::Colorize;
+use clap::{Parser, Subcommand};
 use parse_trains::{Stop, Train};
-use std::{env, fs, path::Path};
+use std::{fs, path::Path};
 
 mod parse_trains;
 mod plot;
 mod stations;
 mod track_train;
+
+#[derive(Parser)]
+#[command(version, about, long_about=None)]
+#[command(next_line_help = true)]
+struct Cli {
+    #[clap(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// track a train by its code
+    /// Note: if a certain train code corresponds to multiple trains, you will be asked to choose one.
+    Track {
+        /// train code
+        code: u32,
+        /// index of the train to track, useful when the code corresponds to multiple trains
+        #[clap(short, long)]
+        index: Option<usize>,
+        /// print all the train stops (verbose)
+        #[clap(short, long)]
+        #[arg(default_value_t = false)]
+        stops: bool,
+    },
+    /// plot circulating trains between SAVONA and VENTIMIGLIA
+    Plot,
+}
 
 async fn plot() {
     println!("Parsing trains...");
@@ -62,54 +89,20 @@ async fn plot() {
 
 #[tokio::main]
 async fn main() {
-    let mut args_iter = env::args().skip(1);
+    let cli = Cli::parse();
 
-    let help_message = format!(
-        "Utilizzo. Comandi disponibili:
-        {0} {1} {2}
-            stampa informazioni sul ritardo del treno.
-            Nota: se un certo {1} corrisponde a più treni, verrà chiesto di sceglierne uno.
-            In alternativa, è possibile specificare un indice (parametro {2}) per selezionare direttamente il treno.
-
-        {3}
-            grafica i treni in circolazione tra SAVONA e VENTIMIGLIA.
-
-        {4}
-            visualizza questo messaggio.",
-        "t, track".bold(),
-        "<train_code>".underline(),
-        "[<index>]".underline(),
-        "p, plot".bold(),
-        "h, help".bold()
-    );
-
-    if let Some(command) = args_iter.next() {
-        match command.as_str() {
-            "track" | "t" => {
-                if let Some(code) = args_iter.next() {
-                    let code = code.parse::<u32>().expect("Codice invalido.");
-                    let index = args_iter
-                        .next()
-                        .map(|arg| arg.parse::<usize>().expect("Indice invalido."));
-
-                    track_train::track(code, index)
-                        .await
-                        .expect("C'è stato un errore");
-                } else {
-                    println!("Inserire un codice valido.");
-                }
-            }
-            "plot" | "p" => {
-                plot().await;
-            }
-            "help" | "h" => {
-                println!("{help_message}");
-            }
-            _ => {
-                println!("Comando sconosciuto, usa 'help' per visualizzare i comandi disponibili.");
-            }
+    match cli.command {
+        Commands::Track {
+            code,
+            index,
+            stops: _,
+        } => {
+            track_train::track(code, index)
+                .await
+                .expect("An error occurred");
         }
-    } else {
-        println!("{help_message}");
+        Commands::Plot => {
+            plot().await;
+        }
     }
 }

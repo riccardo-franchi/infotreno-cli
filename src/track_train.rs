@@ -15,12 +15,12 @@ pub async fn track(code: u32, index: Option<usize>) -> Result<(), Box<dyn std::e
     let lines: Vec<_> = res.lines().collect();
 
     if lines.is_empty() {
-        println!("Nessun treno trovato con il codice inserito");
+        println!("No train found with the code provided.");
         return Ok(());
     }
 
     let index = if lines.len() > 1 && index.is_none() {
-        println!("Trovato più di un treno con il codice inserito. Seleziona il treno:");
+        println!("Found more than one train with selected code. Please select the desired one:");
 
         lines.clone().into_iter().enumerate().for_each(|(i, l)| {
             let l = l.split('|').next().unwrap();
@@ -35,7 +35,7 @@ pub async fn track(code: u32, index: Option<usize>) -> Result<(), Box<dyn std::e
     };
 
     if index >= lines.len() {
-        return Err("Indice non valido.".into());
+        return Err("Invalid index.".into());
     }
 
     let mut line_content = lines[index].split('|').nth(1).unwrap().split('-').skip(1);
@@ -89,7 +89,7 @@ async fn print_train_track_info(
         };
 
         println!(
-            "Treno {}, {} \nNon ancora partito.\nPartenza prevista alle ore {}.",
+            "Train {}, {} \nNot yet departured.\nScheduled departure time: {}.",
             train_label.bold(),
             itinerary,
             departure_time
@@ -109,13 +109,13 @@ async fn print_train_track_info(
 
     let stops = res["fermate"].as_array().unwrap();
 
-    let is_arrived = stops.iter().last().expect("Nessuna fermata rilevata.")["actualFermataType"]
+    let is_arrived = stops.iter().last().expect("No stop found.")["actualFermataType"]
         .as_u64()
         .unwrap()
         == 1;
 
     println!(
-        "Treno {}, {} \nUltimo rilevamento ({}):\n\t{}, {}",
+        "Train {}, {} \nLast update ({}):\n\t{}, {}",
         train_label.bold(),
         itinerary,
         last_update_time,
@@ -124,7 +124,7 @@ async fn print_train_track_info(
     );
 
     if is_arrived {
-        println!("Arrivato a destinazione.");
+        println!("Arrived at destination.");
     } else {
         for f in stops {
             let stop_type = f["actualFermataType"].as_u64().unwrap();
@@ -137,7 +137,7 @@ async fn print_train_track_info(
             let arrival_time = format_time(&f["arrivo_teorico"]);
 
             println!(
-                "\nProssima fermata: {} (arrivo teorico: {})",
+                "\nNext stop: {} (timetable arrival time: {})",
                 next_stop.cyan(),
                 arrival_time
             );
