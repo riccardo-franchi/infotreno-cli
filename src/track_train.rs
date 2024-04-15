@@ -83,6 +83,17 @@ async fn print_train_track_info(
 
     let is_not_departured = res["nonPartito"].as_bool().unwrap_or_default();
 
+    let stops = res["fermate"].as_array().unwrap();
+
+    let delay_number = res["ritardo"].as_i64();
+    let delay = delay_number.map(|d| {
+        if d > 0 {
+            format!("+{d}")
+        } else {
+            d.to_string()
+        }
+    });
+
     if is_not_departured {
         let departure_time = if international_origin.is_some() {
             format_time(&res["oraPartenzaEstera"])
@@ -99,21 +110,14 @@ async fn print_train_track_info(
             itinerary,
             departure_time
         );
+        if print_stops {
+            print_stops_info(stops, delay_number);
+        }
         return Ok(());
     }
 
-    let delay_number = res["ritardo"].as_i64();
-    let delay = delay_number.map(|d| {
-        if d > 0 {
-            format!("+{d}")
-        } else {
-            d.to_string()
-        }
-    });
     let last_update_station = res["stazioneUltimoRilevamento"].as_str().unwrap_or("--");
     let last_update_time = format_time(&res["oraUltimoRilevamento"]);
-
-    let stops = res["fermate"].as_array().unwrap();
 
     let is_arrived = stops.iter().last().expect("No stop found.")["actualFermataType"]
         .as_u64()
@@ -199,7 +203,7 @@ fn print_stops_info(stops: &Vec<Value>, delay: Option<i64>) {
             let actual_departure_time = format_time(&stop["partenzaReale"]);
 
             println!(
-                "\n{} - platform {}\n\tScheduled arrival time: {} - actual: {}\n\tScheduled departure time: {} - actual: {}",
+                "\n{} - platform {}\n\tScheduled arrival time:   {} - actual: {}\n\tScheduled departure time: {} - actual: {}",
                 station.green(),
                 platform,
                 scheduled_arrival_time,
@@ -214,7 +218,7 @@ fn print_stops_info(stops: &Vec<Value>, delay: Option<i64>) {
                 format_estimated_time(&stop["partenza_teorica"], delay.unwrap_or(0));
 
             println!(
-                "\n{} - platform {}\n\tScheduled arrival time: {} - estimated: {}\n\tScheduled departure time: {} - estimated: {}",
+                "\n{} - platform {}\n\tScheduled arrival time:   {} - estimated: {}\n\tScheduled departure time: {} - estimated: {}",
                 station,
                 platform,
                 scheduled_arrival_time,
