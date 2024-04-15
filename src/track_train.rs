@@ -140,12 +140,15 @@ async fn print_train_track_info(
             }
 
             let next_stop = f["stazione"].as_str().unwrap();
-            let arrival_time = format_time(&f["arrivo_teorico"]);
+            let scheduled_arrival_time = format_time(&f["arrivo_teorico"]);
+            let estimated_arrival_time =
+                format_estimated_time(&f["arrivo_teorico"], delay_number.unwrap_or(0));
 
             println!(
-                "\nNext stop: {} (timetable arrival time: {})",
+                "\nNext stop: {}\n\tScheduled arrival time: {}\n\tEstimated arrival time: {}",
                 next_stop.cyan(),
-                arrival_time
+                scheduled_arrival_time,
+                estimated_arrival_time,
             );
             break;
         }
@@ -158,7 +161,18 @@ async fn print_train_track_info(
     Ok(())
 }
 
-fn print_stops_info(stops: &Vec<Value>, delay: Option<i64>) {}
+fn print_stops_info(_stops: &Vec<Value>, _delay: Option<i64>) {}
+
+fn format_estimated_time(time: &Value, delay: i64) -> String {
+    const MICROSECONDS_PER_MINUTE: i64 = 60_000;
+
+    parse_time(
+        time.as_i64()
+            .map(|t| (t + MICROSECONDS_PER_MINUTE * delay) as u64),
+    )
+    .map(|t| t.format("%H:%M").to_string())
+    .unwrap_or("--:--".to_string())
+}
 
 fn format_time(time: &Value) -> String {
     parse_time(time.as_u64())
