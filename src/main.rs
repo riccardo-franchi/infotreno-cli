@@ -19,7 +19,7 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// track a train by its code
-    /// Note: if a certain train code corresponds to multiple trains, you will be asked to choose one.
+    /// Note: if a certain train code corresponds to multiple trains, you will be asked to choose one
     Track {
         /// train code
         code: u32,
