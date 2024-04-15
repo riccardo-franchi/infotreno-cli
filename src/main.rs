@@ -92,12 +92,8 @@ async fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Track {
-            code,
-            index,
-            stops: _,
-        } => {
-            track_train::track(code, index)
+        Commands::Track { code, index, stops } => {
+            track_train::track(code, index, stops)
                 .await
                 .expect("An error occurred");
         }

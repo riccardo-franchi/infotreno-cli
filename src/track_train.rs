@@ -4,7 +4,11 @@ use chrono::NaiveTime;
 use colored::Colorize;
 use serde_json::Value;
 
-pub async fn track(code: u32, index: Option<usize>) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn track(
+    code: u32,
+    index: Option<usize>,
+    print_stops: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
     let url = format!(
         "http://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/cercaNumeroTrenoTrenoAutocomplete/{}",
         code
@@ -43,7 +47,7 @@ pub async fn track(code: u32, index: Option<usize>) -> Result<(), Box<dyn std::e
     let origin_id = line_content.next().unwrap();
     let timestamp = line_content.next().unwrap();
 
-    print_train_track_info(origin_id, code, timestamp).await?;
+    print_train_track_info(origin_id, code, timestamp, print_stops).await?;
 
     Ok(())
 }
@@ -52,6 +56,7 @@ async fn print_train_track_info(
     origin_id: &str,
     code: u32,
     timestamp: &str,
+    print_stops: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let url = format!(
         "http://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/andamentoTreno/{}/{}/{}",
@@ -97,7 +102,8 @@ async fn print_train_track_info(
         return Ok(());
     }
 
-    let delay = res["ritardo"].as_i64().map(|d| {
+    let delay_number = res["ritardo"].as_i64();
+    let delay = delay_number.map(|d| {
         if d > 0 {
             format!("+{d}")
         } else {
@@ -145,8 +151,14 @@ async fn print_train_track_info(
         }
     }
 
+    if print_stops {
+        print_stops_info(stops, delay_number);
+    }
+
     Ok(())
 }
+
+fn print_stops_info(stops: &Vec<Value>, delay: Option<i64>) {}
 
 fn format_time(time: &Value) -> String {
     parse_time(time.as_u64())
