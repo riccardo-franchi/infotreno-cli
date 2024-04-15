@@ -132,17 +132,17 @@ async fn print_train_track_info(
     if is_arrived {
         println!("Arrived at destination.");
     } else {
-        for f in stops {
-            let stop_type = f["actualFermataType"].as_u64().unwrap();
+        for stop in stops {
+            let stop_type = stop["actualFermataType"].as_u64().unwrap();
 
             if stop_type != 0 {
                 continue;
             }
 
-            let next_stop = f["stazione"].as_str().unwrap();
-            let scheduled_arrival_time = format_time(&f["arrivo_teorico"]);
+            let next_stop = stop["stazione"].as_str().unwrap();
+            let scheduled_arrival_time = format_time(&stop["arrivo_teorico"]);
             let estimated_arrival_time =
-                format_estimated_time(&f["arrivo_teorico"], delay_number.unwrap_or(0));
+                format_estimated_time(&stop["arrivo_teorico"], delay_number.unwrap_or(0));
 
             println!(
                 "\nNext stop: {}\n\tScheduled arrival time: {}\n\tEstimated arrival time: {}",
@@ -161,7 +161,53 @@ async fn print_train_track_info(
     Ok(())
 }
 
-fn print_stops_info(_stops: &Vec<Value>, _delay: Option<i64>) {}
+fn print_stops_info(stops: &Vec<Value>, delay: Option<i64>) {
+    print!("\nStops:");
+
+    for stop in stops {
+        let stop_type = stop["actualFermataType"].as_u64().unwrap();
+
+        let station = stop["stazione"].as_str().unwrap();
+        // TODO: print also platform
+
+        let scheduled_arrival_time = format_time(&stop["arrivo_teorico"]);
+        let scheduled_departure_time = format_time(&stop["partenza_teorica"]);
+
+        if stop_type != 0 {
+            let actual_arrival_time = format_time(&stop["arrivoReale"]);
+            let actual_departure_time = format_time(&stop["partenzaReale"]);
+
+            println!(
+                "\n{}\n\tScheduled arrival time: {} - actual: {}\n\tScheduled departure time: {} - actual: {}",
+                station.green(),
+                scheduled_arrival_time,
+                actual_arrival_time.bold(),
+                scheduled_departure_time,
+                actual_departure_time.bold()
+            );
+        } else {
+            let estimated_arrival_time =
+                format_estimated_time(&stop["arrivo_teorico"], delay.unwrap_or(0));
+            let estimated_departure_time =
+                format_estimated_time(&stop["partenza_teorica"], delay.unwrap_or(0));
+
+            println!(
+                "\n{}\n\tScheduled arrival time: {} - estimated: {}\n\tScheduled departure time: {} - estimated: {}",
+                station,
+                scheduled_arrival_time,
+                estimated_arrival_time.bold(),
+                scheduled_departure_time,
+                estimated_departure_time.bold()
+            );
+        }
+    }
+}
+
+fn format_time(time: &Value) -> String {
+    parse_time(time.as_u64())
+        .map(|t| t.format("%H:%M").to_string())
+        .unwrap_or("--:--".to_string())
+}
 
 fn format_estimated_time(time: &Value, delay: i64) -> String {
     const MICROSECONDS_PER_MINUTE: i64 = 60_000;
@@ -172,12 +218,6 @@ fn format_estimated_time(time: &Value, delay: i64) -> String {
     )
     .map(|t| t.format("%H:%M").to_string())
     .unwrap_or("--:--".to_string())
-}
-
-fn format_time(time: &Value) -> String {
-    parse_time(time.as_u64())
-        .map(|t| t.format("%H:%M").to_string())
-        .unwrap_or("--:--".to_string())
 }
 
 fn parse_time(time: Option<u64>) -> Option<NaiveTime> {
