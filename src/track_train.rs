@@ -4,7 +4,11 @@ use chrono::NaiveTime;
 use colored::Colorize;
 use serde_json::Value;
 
-pub async fn track(code: u32, index: Option<usize>) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn track(
+    code: u32,
+    index: Option<usize>,
+    print_stops: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
     let url = format!(
         "http://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/cercaNumeroTrenoTrenoAutocomplete/{}",
         code
@@ -15,12 +19,12 @@ pub async fn track(code: u32, index: Option<usize>) -> Result<(), Box<dyn std::e
     let lines: Vec<_> = res.lines().collect();
 
     if lines.is_empty() {
-        println!("Nessun treno trovato con il codice inserito");
+        println!("No train found with the code provided.");
         return Ok(());
     }
 
     let index = if lines.len() > 1 && index.is_none() {
-        println!("Trovato più di un treno con il codice inserito. Seleziona il treno:");
+        println!("Found more than one train with selected code. Please select the desired one:");
 
         lines.clone().into_iter().enumerate().for_each(|(i, l)| {
             let l = l.split('|').next().unwrap();
@@ -35,7 +39,7 @@ pub async fn track(code: u32, index: Option<usize>) -> Result<(), Box<dyn std::e
     };
 
     if index >= lines.len() {
-        return Err("Indice non valido.".into());
+        return Err("Invalid index.".into());
     }
 
     let mut line_content = lines[index].split('|').nth(1).unwrap().split('-').skip(1);
@@ -43,7 +47,7 @@ pub async fn track(code: u32, index: Option<usize>) -> Result<(), Box<dyn std::e
     let origin_id = line_content.next().unwrap();
     let timestamp = line_content.next().unwrap();
 
-    print_train_track_info(origin_id, code, timestamp).await?;
+    print_train_track_info(origin_id, code, timestamp, print_stops).await?;
 
     Ok(())
 }
@@ -52,6 +56,7 @@ async fn print_train_track_info(
     origin_id: &str,
     code: u32,
     timestamp: &str,
+    print_stops: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let url = format!(
         "http://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/andamentoTreno/{}/{}/{}",
@@ -78,6 +83,17 @@ async fn print_train_track_info(
 
     let is_not_departured = res["nonPartito"].as_bool().unwrap_or_default();
 
+    let stops = res["fermate"].as_array().unwrap();
+
+    let delay_number = res["ritardo"].as_i64();
+    let delay = delay_number.map(|d| {
+        if d > 0 {
+            format!("+{d}")
+        } else {
+            d.to_string()
+        }
+    });
+
     if is_not_departured {
         let departure_time = if international_origin.is_some() {
             format_time(&res["oraPartenzaEstera"])
@@ -89,33 +105,27 @@ async fn print_train_track_info(
         };
 
         println!(
-            "Treno {}, {} \nNon ancora partito.\nPartenza prevista alle ore {}.",
+            "Train {}, {} \nNot yet departured.\nScheduled departure time: {}.",
             train_label.bold(),
             itinerary,
             departure_time
         );
+        if print_stops {
+            print_stops_info(stops, delay_number);
+        }
         return Ok(());
     }
 
-    let delay = res["ritardo"].as_i64().map(|d| {
-        if d > 0 {
-            format!("+{d}")
-        } else {
-            d.to_string()
-        }
-    });
     let last_update_station = res["stazioneUltimoRilevamento"].as_str().unwrap_or("--");
     let last_update_time = format_time(&res["oraUltimoRilevamento"]);
 
-    let stops = res["fermate"].as_array().unwrap();
-
-    let is_arrived = stops.iter().last().expect("Nessuna fermata rilevata.")["actualFermataType"]
+    let is_arrived = stops.iter().last().expect("No stop found.")["actualFermataType"]
         .as_u64()
         .unwrap()
         == 1;
 
     println!(
-        "Treno {}, {} \nUltimo rilevamento ({}):\n\t{}, {}",
+        "Train {}, {} \nLast update ({}):\n\t{}, {}",
         train_label.bold(),
         itinerary,
         last_update_time,
@@ -124,34 +134,117 @@ async fn print_train_track_info(
     );
 
     if is_arrived {
-        println!("Arrivato a destinazione.");
+        println!("Arrived at destination.");
     } else {
-        for f in stops {
-            let stop_type = f["actualFermataType"].as_u64().unwrap();
+        for stop in stops {
+            let stop_type = stop["actualFermataType"].as_u64().unwrap();
 
             if stop_type != 0 {
                 continue;
             }
 
-            let next_stop = f["stazione"].as_str().unwrap();
-            let arrival_time = format_time(&f["arrivo_teorico"]);
+            let next_stop = stop["stazione"].as_str().unwrap();
+            let scheduled_arrival_time = format_time(&stop["arrivo_teorico"]);
+            let estimated_arrival_time =
+                format_estimated_time(&stop["arrivo_teorico"], delay_number.unwrap_or(0));
 
             println!(
-                "\nProssima fermata: {} (arrivo teorico: {})",
+                "\nNext stop: {}\n\tScheduled arrival time: {}\n\tEstimated arrival time: {}",
                 next_stop.cyan(),
-                arrival_time
+                scheduled_arrival_time,
+                estimated_arrival_time,
             );
             break;
         }
     }
 
+    if print_stops {
+        print_stops_info(stops, delay_number);
+    }
+
     Ok(())
+}
+
+fn print_stops_info(stops: &Vec<Value>, delay: Option<i64>) {
+    print!("\nStops:");
+
+    for stop in stops {
+        let stop_type = stop["actualFermataType"].as_u64().unwrap();
+
+        let station = stop["stazione"].as_str().unwrap();
+
+        let scheduled_platform = stop["binarioProgrammatoArrivoDescrizione"]
+            .as_str()
+            .unwrap_or_else(|| {
+                stop["binarioProgrammatoPartenzaDescrizione"]
+                    .as_str()
+                    .unwrap_or("--")
+            });
+
+        let actual_platform = stop["binarioEffettivoArrivoDescrizione"]
+            .as_str()
+            .unwrap_or_else(|| {
+                stop["binarioEffettivoPartenzaDescrizione"]
+                    .as_str()
+                    .unwrap_or("--")
+            });
+
+        let platform = if actual_platform == "--" {
+            scheduled_platform.to_string()
+        } else {
+            actual_platform.green().to_string()
+        };
+
+        let scheduled_arrival_time = format_time(&stop["arrivo_teorico"]);
+        let scheduled_departure_time = format_time(&stop["partenza_teorica"]);
+
+        if stop_type != 0 {
+            let actual_arrival_time = format_time(&stop["arrivoReale"]);
+            let actual_departure_time = format_time(&stop["partenzaReale"]);
+
+            println!(
+                "\n{} - platform {}\n\tScheduled arrival time:   {} - actual: {}\n\tScheduled departure time: {} - actual: {}",
+                station.green(),
+                platform,
+                scheduled_arrival_time,
+                actual_arrival_time.bold(),
+                scheduled_departure_time,
+                actual_departure_time.bold()
+            );
+        } else {
+            let estimated_arrival_time =
+                format_estimated_time(&stop["arrivo_teorico"], delay.unwrap_or(0));
+            let estimated_departure_time =
+                format_estimated_time(&stop["partenza_teorica"], delay.unwrap_or(0));
+
+            println!(
+                "\n{} - platform {}\n\tScheduled arrival time:   {} - estimated: {}\n\tScheduled departure time: {} - estimated: {}",
+                station,
+                platform,
+                scheduled_arrival_time,
+                estimated_arrival_time.bold(),
+                scheduled_departure_time,
+                estimated_departure_time.bold()
+            );
+        }
+    }
 }
 
 fn format_time(time: &Value) -> String {
     parse_time(time.as_u64())
         .map(|t| t.format("%H:%M").to_string())
         .unwrap_or("--:--".to_string())
+}
+
+fn format_estimated_time(time: &Value, delay: i64) -> String {
+    const MICROSECONDS_PER_MINUTE: i64 = 60_000;
+
+    parse_time(
+        time.as_i64()
+            .map(|t| (t + MICROSECONDS_PER_MINUTE * delay) as u64),
+    )
+    .map(|t| t.format("%H:%M").to_string())
+    .unwrap_or("--:--".to_string())
 }
 
 fn parse_time(time: Option<u64>) -> Option<NaiveTime> {
