@@ -105,6 +105,8 @@ async fn main() {
                 .expect("An error occurred");
         }
         Commands::Station { station } => {
+            // TODO: search by station code
+            // TODO: print only arrivals or departures
             station::station(&station).await.expect("An error occurred");
         }
         Commands::Plot => {
