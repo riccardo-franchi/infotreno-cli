@@ -73,17 +73,45 @@ async fn print_station_arrivals_departures(
     println!("\t----  {}  -----", "Arrivals".bold().green());
 
     for train in arrivals {
-        let train_label = train["compNumeroTreno"].as_str().unwrap().trim();
+        let train_label = train["compNumeroTreno"].as_str().unwrap();
+        let origin = train["origine"].as_str().unwrap();
+        let arrival_time = train["compOrarioArrivo"].as_str().unwrap();
+        let delay_number = train["ritardo"].as_i64().unwrap_or(0);
+        let delay = if delay_number > 0 {
+            format!("+{delay_number}")
+        } else {
+            delay_number.to_string()
+        };
 
-        println!("{}", train_label);
+        println!(
+            "{} - {}\t\t{} - ({})",
+            train_label.bold(),
+            origin,
+            arrival_time,
+            delay
+        );
     }
 
     println!("\n\t---- {} -----", "Departures".bold().magenta());
 
     for train in departures {
-        let train_label = train["compNumeroTreno"].as_str().unwrap().trim();
+        let train_label = train["compNumeroTreno"].as_str().unwrap();
+        let destination = train["destinazione"].as_str().unwrap();
+        let departure_time = train["compOrarioPartenza"].as_str().unwrap();
+        let delay_number = train["ritardo"].as_i64().unwrap_or(0);
+        let delay = if delay_number > 0 {
+            format!("+{delay_number}")
+        } else {
+            delay_number.to_string()
+        };
 
-        println!("{}", train_label);
+        println!(
+            "{} - {}\t\t{} - ({})",
+            train_label.bold(),
+            destination,
+            departure_time,
+            delay
+        );
     }
 
     Ok(())
