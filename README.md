@@ -11,10 +11,11 @@ Viaggiatreno API documentation:
 - https://github.com/sabas/trenitalia.
 
 ## Roadmap
-- Plot currently circulating trains between two sections
+- Print arriving and departing trains at a certain station
+- Add option to refresh data every minute
+- Format and print _Notizie infomobilità_
 - Print currently circulating trains between two sections of main lines (filtering by train type is possible)
 - Print all currently circulating long distance trains
 - Print currently circulating trains between two sections on a branch regional line
-- Print arriving and departing trains at a certain station
+- Plot currently circulating trains between two sections
 - Print train delay history for a certain train at a certain station
-- Format and print _Notizie infomobilità_
