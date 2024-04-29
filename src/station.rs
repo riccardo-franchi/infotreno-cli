@@ -1,6 +1,7 @@
 use chrono::Local;
 use colored::Colorize;
 use std::io;
+use tabular::{Row, Table};
 
 pub async fn station(name: &str) -> Result<(), Box<dyn std::error::Error>> {
     // TODO: refactor by using a single function throughout the repo to fetch data from the API providing the URL
@@ -72,47 +73,54 @@ async fn print_station_arrivals_departures(
 
     println!("\t----  {}  -----", "Arrivals".bold().green());
 
+    let mut arrivals_table = Table::new("{:<}\t{:<} {:>} {:<}");
+
     for train in arrivals {
         let train_label = train["compNumeroTreno"].as_str().unwrap();
         let origin = train["origine"].as_str().unwrap();
         let arrival_time = train["compOrarioArrivo"].as_str().unwrap();
         let delay_number = train["ritardo"].as_i64().unwrap_or(0);
-        let delay = if delay_number > 0 {
-            format!("+{delay_number}")
-        } else {
-            delay_number.to_string()
-        };
+        let delay = format!("+{delay_number}");
 
-        println!(
-            "{} - {}\t\t{} - ({})",
-            train_label.bold(),
-            origin,
-            arrival_time,
-            delay
+        arrivals_table.add_row(
+            Row::new()
+                .with_cell(train_label.bold())
+                .with_cell(origin)
+                .with_cell(arrival_time)
+                .with_cell(if delay_number != 0 {
+                    delay
+                } else {
+                    "".to_string()
+                }),
         );
     }
+    print!("{arrivals_table}");
 
     println!("\n\t---- {} -----", "Departures".bold().magenta());
+
+    let mut departures_table = Table::new("{:<}\t{:<} {:>} {:<}");
 
     for train in departures {
         let train_label = train["compNumeroTreno"].as_str().unwrap();
         let destination = train["destinazione"].as_str().unwrap();
         let departure_time = train["compOrarioPartenza"].as_str().unwrap();
         let delay_number = train["ritardo"].as_i64().unwrap_or(0);
-        let delay = if delay_number > 0 {
-            format!("+{delay_number}")
-        } else {
-            delay_number.to_string()
-        };
+        let delay = format!("+{delay_number}");
 
-        println!(
-            "{} - {}\t\t{} - ({})",
-            train_label.bold(),
-            destination,
-            departure_time,
-            delay
+        departures_table.add_row(
+            Row::new()
+                .with_cell(train_label.bold())
+                .with_cell(destination)
+                .with_cell(departure_time)
+                .with_cell(if delay_number != 0 {
+                    delay
+                } else {
+                    "".to_string()
+                }),
         );
     }
+
+    print!("{departures_table}");
 
     Ok(())
 }
