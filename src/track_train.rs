@@ -105,7 +105,7 @@ async fn print_train_track_info(
         };
 
         println!(
-            "Train {}, {} \nNot yet departured.\nScheduled departure time: {}.",
+            "Train {}, {} \nNot yet departured.\nScheduled departure time: {}.\n",
             train_label.bold(),
             itinerary,
             departure_time
@@ -134,7 +134,7 @@ async fn print_train_track_info(
     );
 
     if is_arrived {
-        println!("Arrived at destination.");
+        println!("Arrived at destination.\n");
     } else {
         for stop in stops {
             let stop_type = stop["actualFermataType"].as_u64().unwrap();
@@ -149,7 +149,7 @@ async fn print_train_track_info(
                 format_estimated_time(&stop["arrivo_teorico"], delay_number.unwrap_or(0));
 
             println!(
-                "\nNext stop: {}\n\tScheduled arrival time: {}\n\tEstimated arrival time: {}",
+                "\nNext stop: {}\n\tScheduled arrival time: {}\n\tEstimated arrival time: {}\n",
                 next_stop.cyan(),
                 scheduled_arrival_time,
                 estimated_arrival_time,
@@ -166,7 +166,7 @@ async fn print_train_track_info(
 }
 
 fn print_stops_info(stops: &Vec<Value>, delay: Option<i64>) {
-    print!("\nStops:");
+    print!("Stops:");
 
     for stop in stops {
         let stop_type = stop["actualFermataType"].as_u64().unwrap();
@@ -228,6 +228,8 @@ fn print_stops_info(stops: &Vec<Value>, delay: Option<i64>) {
             );
         }
     }
+
+    println!();
 }
 
 fn format_time(time: &Value) -> String {
