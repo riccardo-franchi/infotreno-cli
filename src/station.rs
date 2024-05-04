@@ -79,25 +79,42 @@ async fn print_station_arrivals_departures(
 
         println!("\t----  {}  -----", "Arrivals".bold().green());
 
-        let mut arrivals_table = Table::new("{:<}\t{:<} {:>} {:<}");
+        let mut arrivals_table = Table::new("{:<}  {:<} {:>} {:<}  {:<}");
 
         for train in arrivals {
             let train_label = train["compNumeroTreno"].as_str().unwrap();
             let origin = train["origine"].as_str().unwrap();
             let arrival_time = train["compOrarioArrivo"].as_str().unwrap();
             let delay_number = train["ritardo"].as_i64().unwrap_or(0);
-            let delay = format!("+{delay_number}");
+            let delay = if delay_number != 0 {
+                format!("+{delay_number}")
+            } else {
+                "".to_string()
+            };
+
+            let scheduled_platform = train["binarioProgrammatoArrivoDescrizione"]
+                .as_str()
+                .unwrap_or("")
+                .trim();
+
+            let actual_platform = train["binarioEffettivoArrivoDescrizione"]
+                .as_str()
+                .unwrap_or("")
+                .trim();
+
+            let platform = if actual_platform == "" {
+                scheduled_platform.to_string()
+            } else {
+                actual_platform.green().to_string()
+            };
 
             arrivals_table.add_row(
                 Row::new()
                     .with_cell(train_label.bold())
                     .with_cell(origin)
                     .with_cell(arrival_time)
-                    .with_cell(if delay_number != 0 {
-                        delay
-                    } else {
-                        "".to_string()
-                    }),
+                    .with_cell(delay)
+                    .with_cell(platform),
             );
         }
         println!("{arrivals_table}");
@@ -114,25 +131,42 @@ async fn print_station_arrivals_departures(
 
         println!("\t---- {} -----", "Departures".bold().magenta());
 
-        let mut departures_table = Table::new("{:<}\t{:<} {:>} {:<}");
+        let mut departures_table = Table::new("{:<}  {:<} {:>} {:<}  {:<}");
 
         for train in departures {
             let train_label = train["compNumeroTreno"].as_str().unwrap();
             let destination = train["destinazione"].as_str().unwrap();
             let departure_time = train["compOrarioPartenza"].as_str().unwrap();
             let delay_number = train["ritardo"].as_i64().unwrap_or(0);
-            let delay = format!("+{delay_number}");
+            let delay = if delay_number != 0 {
+                format!("+{delay_number}")
+            } else {
+                "".to_string()
+            };
+
+            let scheduled_platform = train["binarioProgrammatoPartenzaDescrizione"]
+                .as_str()
+                .unwrap_or("")
+                .trim();
+
+            let actual_platform = train["binarioEffettivoPartenzaDescrizione"]
+                .as_str()
+                .unwrap_or("")
+                .trim();
+
+            let platform = if actual_platform == "" {
+                scheduled_platform.to_string()
+            } else {
+                actual_platform.green().to_string()
+            };
 
             departures_table.add_row(
                 Row::new()
                     .with_cell(train_label.bold())
                     .with_cell(destination)
                     .with_cell(departure_time)
-                    .with_cell(if delay_number != 0 {
-                        delay
-                    } else {
-                        "".to_string()
-                    }),
+                    .with_cell(delay)
+                    .with_cell(platform),
             );
         }
 
