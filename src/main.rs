@@ -35,7 +35,7 @@ enum Commands {
     /// find arrival and departure times of trains at a certain station.
     /// It is possible to search for a station by the beginning of its name; a prompt will ask to choose the desired station
     Station {
-        /// station name
+        /// station name or station code (e.g. "Milano Centrale" or "S01700")
         station: String,
         /// print only arrivals.
         /// Note: if neither arrivals nor departures are specified, both will be printed
@@ -118,7 +118,6 @@ async fn main() {
             arrivals,
             departures,
         } => {
-            // TODO: search by station code
             station::station(&station, arrivals, departures)
                 .await
                 .expect("An error occurred");

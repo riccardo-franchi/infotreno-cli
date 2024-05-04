@@ -1,13 +1,35 @@
 use chrono::Local;
 use colored::Colorize;
+use regex::Regex;
 use std::io;
-use tabular::{Row, Table};
+use tabular::{row, Table};
 
 pub async fn station(
     name: &str,
     print_arrivals: bool,
     print_departures: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    let timestamp = Local::now().format("%b %d %Y %H:%M:%S").to_string();
+
+    // If both print_arrivals and print_departures are false, print both
+    let (print_arrivals, print_departures) = if !(print_arrivals || print_departures) {
+        (true, true)
+    } else {
+        (print_arrivals, print_departures)
+    };
+
+    let re = Regex::new(r"S[0-9]{5}").unwrap();
+
+    if re.is_match(name) {
+        return print_station_arrivals_departures(
+            name,
+            &timestamp,
+            print_arrivals,
+            print_departures,
+        )
+        .await;
+    }
+
     // TODO: refactor by using a single function throughout the repo to fetch data from the API providing the URL
     let url = format!(
         "http://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/autocompletaStazione/{}",
@@ -47,15 +69,6 @@ pub async fn station(
     if index >= lines.len() {
         return Err("Invalid index.".into());
     }
-
-    let timestamp = Local::now().format("%b %d %Y %H:%M:%S").to_string();
-
-    // If both print_arrivals and print_departures are false, print both
-    let (print_arrivals, print_departures) = if !(print_arrivals || print_departures) {
-        (true, true)
-    } else {
-        (print_arrivals, print_departures)
-    };
 
     print_station_arrivals_departures(lines[index].1, &timestamp, print_arrivals, print_departures)
         .await
@@ -108,14 +121,13 @@ async fn print_station_arrivals_departures(
                 actual_platform.green().to_string()
             };
 
-            arrivals_table.add_row(
-                Row::new()
-                    .with_cell(train_label.bold())
-                    .with_cell(origin)
-                    .with_cell(arrival_time)
-                    .with_cell(delay)
-                    .with_cell(platform),
-            );
+            arrivals_table.add_row(row!(
+                train_label.bold(),
+                origin,
+                arrival_time,
+                delay,
+                platform
+            ));
         }
         println!("{arrivals_table}");
     }
@@ -160,14 +172,13 @@ async fn print_station_arrivals_departures(
                 actual_platform.green().to_string()
             };
 
-            departures_table.add_row(
-                Row::new()
-                    .with_cell(train_label.bold())
-                    .with_cell(destination)
-                    .with_cell(departure_time)
-                    .with_cell(delay)
-                    .with_cell(platform),
-            );
+            departures_table.add_row(row!(
+                train_label.bold(),
+                destination,
+                departure_time,
+                delay,
+                platform
+            ));
         }
 
         println!("{departures_table}");
