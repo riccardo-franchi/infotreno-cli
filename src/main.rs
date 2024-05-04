@@ -5,6 +5,7 @@ use std::{fs, path::Path};
 
 mod parse_trains;
 mod plot;
+mod station;
 mod stations;
 mod track_train;
 
@@ -18,7 +19,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// track a train by its code
+    /// track a train by its code.
     /// Note: if a certain train code corresponds to multiple trains, you will be asked to choose one
     Track {
         /// train code
@@ -30,6 +31,21 @@ enum Commands {
         #[clap(short, long)]
         #[arg(default_value_t = false)]
         stops: bool,
+    },
+    /// find arrival and departure times of trains at a certain station.
+    /// It is possible to search for a station by the beginning of its name; a prompt will ask to choose the desired station
+    Station {
+        /// station name or station code (e.g. "Milano Centrale" or "S01700")
+        station: String,
+        /// print only arrivals.
+        /// Note: if neither arrivals nor departures are specified, both will be printed
+        #[clap(long)]
+        #[arg(default_value_t = false)]
+        arrivals: bool,
+        /// print only departures
+        #[clap(long)]
+        #[arg(default_value_t = false)]
+        departures: bool,
     },
     /// plot circulating trains between SAVONA and VENTIMIGLIA
     Plot,
@@ -94,6 +110,15 @@ async fn main() {
     match cli.command {
         Commands::Track { code, index, stops } => {
             track_train::track(code, index, stops)
+                .await
+                .expect("An error occurred");
+        }
+        Commands::Station {
+            station,
+            arrivals,
+            departures,
+        } => {
+            station::station(&station, arrivals, departures)
                 .await
                 .expect("An error occurred");
         }
