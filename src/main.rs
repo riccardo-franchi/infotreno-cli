@@ -37,6 +37,15 @@ enum Commands {
     Station {
         /// station name
         station: String,
+        /// print only arrivals.
+        /// Note: if neither arrivals nor departures are specified, both will be printed
+        #[clap(long)]
+        #[arg(default_value_t = false)]
+        arrivals: bool,
+        /// print only departures
+        #[clap(long)]
+        #[arg(default_value_t = false)]
+        departures: bool,
     },
     /// plot circulating trains between SAVONA and VENTIMIGLIA
     Plot,
@@ -104,10 +113,15 @@ async fn main() {
                 .await
                 .expect("An error occurred");
         }
-        Commands::Station { station } => {
+        Commands::Station {
+            station,
+            arrivals,
+            departures,
+        } => {
             // TODO: search by station code
-            // TODO: print only arrivals or departures
-            station::station(&station).await.expect("An error occurred");
+            station::station(&station, arrivals, departures)
+                .await
+                .expect("An error occurred");
         }
         Commands::Plot => {
             plot().await;
