@@ -1,21 +1,26 @@
-# Plot train timetable
-Rust program to retrieve and plot timetables of daily circulating trains on the Savona-Ventimiglia railway line.
-It retrieves circulating train numbers from https://trainstats.altervista.org (only Trenitalia-operated passenger trains, not 100% accurate, some InterCity trains are missing) and then fetches data from Trenitalia's Viaggiatreno.
+# Infotreno-cli
+Rust command line program to get Trenitalia's train information from the Viaggiatreno API.
 
-Currently station data is hardcoded, and only works with the Savona-Ventimiglia railway line.
+## Usage
+execute the program with commands:
+- `track`: track a train by its train number
+- `station`: get information about a station by entering its name or code
+- `help`: get full list of commands and options
 
-With command "track", it is possible to track a train and retrieve information on its delay.
-
-Viaggiatreno API documentation: 
-- https://github.com/roughconsensusandrunningcode/TrainMonitor/wiki/API-del-sistema-Viaggiatreno
-- https://github.com/sabas/trenitalia.
+A full documentation of the commands and options can also be found by running `infotreno-cli` without specifying any command.
 
 ## Roadmap
-- Print arriving and departing trains at a certain station
-- Add option to refresh data every minute
+- Add option to auto-refresh data every minute
 - Format and print _Notizie infomobilità_
 - Print currently circulating trains between two sections of main lines (filtering by train type is possible)
 - Print all currently circulating long distance trains
 - Print currently circulating trains between two sections on a branch regional line
 - Plot currently circulating trains between two sections
 - Print train delay history for a certain train at a certain station
+
+Existing iaggiatreno API documentation: 
+- https://github.com/roughconsensusandrunningcode/TrainMonitor/wiki/API-del-sistema-Viaggiatreno
+- https://github.com/sabas/trenitalia.
+
+## Build 
+To build the program, Rust and Cargo are required.
