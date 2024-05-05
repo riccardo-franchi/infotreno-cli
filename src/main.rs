@@ -25,6 +25,10 @@ enum Commands {
         #[clap(short, long)]
         #[arg(default_value_t = false)]
         stops: bool,
+        /// watch mode: refresh tracking data every minute
+        #[clap(short, long)]
+        #[arg(default_value_t = false)]
+        watch: bool,
     },
     /// find arrival and departure times of trains at a certain station.
     /// It is possible to search for a station by the beginning of its name; a prompt will ask to choose the desired station
@@ -48,8 +52,13 @@ async fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Track { code, index, stops } => {
-            track_train::track(code, index, stops)
+        Commands::Track {
+            code,
+            index,
+            stops,
+            watch,
+        } => {
+            track_train::track(code, index, stops, watch)
                 .await
                 .expect("An error occurred");
         }

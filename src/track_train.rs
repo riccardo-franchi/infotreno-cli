@@ -1,4 +1,4 @@
-use std::io;
+use std::{io, time::Duration};
 
 use chrono::NaiveTime;
 use colored::Colorize;
@@ -8,6 +8,7 @@ pub async fn track(
     code: u32,
     index: Option<usize>,
     print_stops: bool,
+    auto_refresh: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let url = format!(
         "http://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/cercaNumeroTrenoTrenoAutocomplete/{}",
@@ -46,6 +47,19 @@ pub async fn track(
 
     let origin_id = line_content.next().unwrap();
     let timestamp = line_content.next().unwrap();
+
+    if auto_refresh {
+        loop {
+            //Clear console
+            print!("\x1B[2J\x1B[1;1H");
+            println!(
+                "{}",
+                "Watch mode: refreshing every minute. Press Ctrl+C to exit.".dimmed()
+            );
+            print_train_track_info(origin_id, code, timestamp, print_stops).await?;
+            tokio::time::sleep(Duration::from_secs(60)).await;
+        }
+    }
 
     print_train_track_info(origin_id, code, timestamp, print_stops).await?;
 

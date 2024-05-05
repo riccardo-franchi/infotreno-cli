@@ -10,7 +10,6 @@ execute the program with commands:
 A full documentation of the commands and options can also be found by running `infotreno-cli` without specifying any command.
 
 ## Roadmap
-- Add option to auto-refresh data every minute
 - Format and print _Notizie infomobilità_
 - Print currently circulating trains between two sections of main lines (filtering by train type is possible)
 - Print all currently circulating long distance trains
