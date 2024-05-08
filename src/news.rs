@@ -1,7 +1,7 @@
 use colored::Colorize;
 use scraper::{Html, Selector};
 
-pub async fn print_news() -> Result<(), Box<dyn std::error::Error>> {
+pub async fn print_news(is_verbose: bool) -> Result<(), Box<dyn std::error::Error>> {
     let url =
         "http://www.viaggiatreno.it/infomobilitamobile/resteasy/viaggiatreno/infomobilitaRSS/false";
 
@@ -11,20 +11,37 @@ pub async fn print_news() -> Result<(), Box<dyn std::error::Error>> {
     let selector = Selector::parse("li").unwrap();
 
     for (i, element) in fragment.select(&selector).enumerate() {
-        let title_element = element.child_elements().next().unwrap();
+        let mut children_iter = element.child_elements();
+
+        let title_element = children_iter.next().unwrap();
         let title = title_element.inner_html();
-        let highlight = title_element
+        let is_highlighted = title_element
             .value()
             .attr("class")
             .unwrap()
             .contains("inEvidenza");
 
-        let title = if highlight {
+        let title = if is_highlighted {
             title.bright_red()
         } else {
             title.normal()
         };
         println!("{}. {}\n", i + 1, title);
+
+        if is_verbose {
+            let info_text = children_iter
+                .next()
+                .unwrap()
+                .text()
+                .collect::<String>()
+                .trim()
+                .replace("\t", "");
+            println!("{}", info_text);
+        }
+    }
+
+    if is_verbose {
+        return Ok(());
     }
 
     Ok(())

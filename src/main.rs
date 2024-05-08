@@ -47,7 +47,13 @@ enum Commands {
         departures: bool,
     },
     // get information about line disruptions from Trenitalia
-    News,
+    News {
+        /// verbose mode: print all news in expanded form.
+        /// Default is to print only the titles and prompt user to select a news item to expand
+        #[clap(short, long)]
+        #[arg(default_value_t = false)]
+        verbose: bool,
+    },
 }
 
 #[tokio::main]
@@ -74,8 +80,8 @@ async fn main() {
                 .await
                 .expect("An error occurred");
         }
-        Commands::News => {
-            news::print_news().await.expect("An error occurred");
+        Commands::News { verbose } => {
+            news::print_news(verbose).await.expect("An error occurred");
         }
     }
 }

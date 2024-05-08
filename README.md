@@ -10,12 +10,11 @@ execute the program with commands:
 A full documentation of the commands and options can also be found by running `infotreno-cli` without specifying any command.
 
 ## Roadmap
-- Format and print _Notizie infomobilità_
+- Print train delay history for a certain train at a certain station
 - Print currently circulating trains between two sections of main lines (filtering by train type is possible)
 - Print all currently circulating long distance trains
 - Print currently circulating trains between two sections on a branch regional line
 - Plot currently circulating trains between two sections
-- Print train delay history for a certain train at a certain station
 
 Existing iaggiatreno API documentation: 
 - https://github.com/roughconsensusandrunningcode/TrainMonitor/wiki/API-del-sistema-Viaggiatreno
