@@ -29,7 +29,7 @@ pub async fn print_news(is_verbose: bool) -> Result<(), Box<dyn std::error::Erro
         } else {
             title.normal()
         };
-        println!("{}. {}\n", i + 1, title);
+        println!("{}. {}\n", i + 1, title.bold());
 
         if is_verbose {
             let info_text = children_iter
@@ -39,7 +39,7 @@ pub async fn print_news(is_verbose: bool) -> Result<(), Box<dyn std::error::Erro
                 .collect::<String>()
                 .trim()
                 .replace('\t', "");
-            println!("{}", info_text);
+            println!("{}\n", info_text);
         }
     }
 
@@ -47,7 +47,7 @@ pub async fn print_news(is_verbose: bool) -> Result<(), Box<dyn std::error::Erro
         return Ok(());
     }
 
-    println!("Select a news header to expand:");
+    println!("{}", "Select a news header to expand:".dimmed());
 
     loop {
         // TODO: refactor getting index to a separate function
