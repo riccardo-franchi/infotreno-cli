@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
 
+mod news;
 mod station;
 mod track_train;
 
@@ -45,6 +46,14 @@ enum Commands {
         #[arg(default_value_t = false)]
         departures: bool,
     },
+    // get information about line disruptions from Trenitalia
+    News {
+        /// verbose mode: print all news in expanded form.
+        /// Default is to print only the titles and prompt user to select a news item to expand
+        #[clap(short, long)]
+        #[arg(default_value_t = false)]
+        verbose: bool,
+    },
 }
 
 #[tokio::main]
@@ -70,6 +79,9 @@ async fn main() {
             station::station(&station, arrivals, departures)
                 .await
                 .expect("An error occurred");
+        }
+        Commands::News { verbose } => {
+            news::print_news(verbose).await.expect("An error occurred");
         }
     }
 }
