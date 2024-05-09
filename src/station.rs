@@ -115,7 +115,7 @@ async fn print_station_arrivals_departures(
                 .unwrap_or("")
                 .trim();
 
-            let platform = if actual_platform == "" {
+            let platform = if actual_platform.is_empty() {
                 scheduled_platform.to_string()
             } else {
                 actual_platform.green().to_string()
@@ -166,7 +166,7 @@ async fn print_station_arrivals_departures(
                 .unwrap_or("")
                 .trim();
 
-            let platform = if actual_platform == "" {
+            let platform = if actual_platform.is_empty() {
                 scheduled_platform.to_string()
             } else {
                 actual_platform.green().to_string()

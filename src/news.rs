@@ -1,5 +1,6 @@
 use colored::Colorize;
 use scraper::{Html, Selector};
+use std::io;
 
 pub async fn print_news(is_verbose: bool) -> Result<(), Box<dyn std::error::Error>> {
     let url =
@@ -10,7 +11,9 @@ pub async fn print_news(is_verbose: bool) -> Result<(), Box<dyn std::error::Erro
     let fragment = Html::parse_fragment(&res);
     let selector = Selector::parse("li").unwrap();
 
-    for (i, element) in fragment.select(&selector).enumerate() {
+    let news = fragment.select(&selector).collect::<Vec<_>>();
+
+    for (i, element) in news.iter().enumerate() {
         let mut children_iter = element.child_elements();
 
         let title_element = children_iter.next().unwrap();
@@ -35,7 +38,7 @@ pub async fn print_news(is_verbose: bool) -> Result<(), Box<dyn std::error::Erro
                 .text()
                 .collect::<String>()
                 .trim()
-                .replace("\t", "");
+                .replace('\t', "");
             println!("{}", info_text);
         }
     }
@@ -44,5 +47,25 @@ pub async fn print_news(is_verbose: bool) -> Result<(), Box<dyn std::error::Erro
         return Ok(());
     }
 
-    Ok(())
+    println!("Select a news header to expand:");
+
+    loop {
+        // TODO: refactor getting index to a separate function
+        let mut input = String::new();
+        io::stdin().read_line(&mut input)?;
+        let index = input.trim().parse::<usize>()? - 1;
+
+        let info_text = news
+            .get(index)
+            .expect("Invalid index")
+            .child_elements()
+            .nth(1)
+            .unwrap()
+            .text()
+            .collect::<String>()
+            .trim()
+            .replace('\t', "");
+
+        println!("{}\n", info_text);
+    }
 }
