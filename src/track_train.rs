@@ -1,8 +1,10 @@
-use std::{io, time::Duration};
+use std::time::Duration;
 
 use chrono::NaiveTime;
 use colored::Colorize;
 use serde_json::Value;
+
+use crate::cli_input;
 
 pub async fn track(
     code: u32,
@@ -32,9 +34,7 @@ pub async fn track(
             println!("{}. {}", i + 1, l);
         });
 
-        let mut input = String::new();
-        io::stdin().read_line(&mut input)?;
-        input.trim().parse::<usize>()? - 1
+        cli_input::get_index() - 1
     } else {
         index.unwrap_or(0)
     };

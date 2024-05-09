@@ -1,8 +1,9 @@
 use chrono::Local;
 use colored::Colorize;
 use regex::Regex;
-use std::io;
 use tabular::{row, Table};
+
+use crate::cli_input;
 
 pub async fn station(
     name: &str,
@@ -59,9 +60,7 @@ pub async fn station(
             println!("{}. {} ({})", i + 1, name.bold(), code);
         });
 
-        let mut input = String::new();
-        io::stdin().read_line(&mut input)?;
-        input.trim().parse::<usize>()? - 1
+        cli_input::get_index() - 1
     } else {
         0
     };

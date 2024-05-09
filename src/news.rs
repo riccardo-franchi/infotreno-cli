@@ -1,6 +1,7 @@
 use colored::Colorize;
 use scraper::{Html, Selector};
-use std::io;
+
+use crate::cli_input;
 
 pub async fn print_news(is_verbose: bool) -> Result<(), Box<dyn std::error::Error>> {
     let url =
@@ -50,10 +51,7 @@ pub async fn print_news(is_verbose: bool) -> Result<(), Box<dyn std::error::Erro
     println!("{}", "Select a news header to expand:".dimmed());
 
     loop {
-        // TODO: refactor getting index to a separate function
-        let mut input = String::new();
-        io::stdin().read_line(&mut input)?;
-        let index = input.trim().parse::<usize>()? - 1;
+        let index = cli_input::get_index() - 1;
 
         let info_text = news
             .get(index)

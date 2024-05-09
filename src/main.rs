@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
 
+mod cli_input;
 mod news;
 mod station;
 mod track_train;
