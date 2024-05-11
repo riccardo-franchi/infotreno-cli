@@ -47,7 +47,7 @@ enum Commands {
         #[arg(default_value_t = false)]
         departures: bool,
     },
-    // get information about line disruptions from Trenitalia
+    /// get information about line disruptions from Trenitalia
     News {
         /// verbose mode: print all news in expanded form.
         /// Default is to print only the titles and prompt user to select a news item to expand

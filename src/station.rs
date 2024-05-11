@@ -31,7 +31,6 @@ pub async fn station(
         .await;
     }
 
-    // TODO: refactor by using a single function throughout the repo to fetch data from the API providing the URL
     let url = format!(
         "http://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/autocompletaStazione/{}",
         name.trim()
