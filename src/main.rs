@@ -17,6 +17,7 @@ struct Cli {
 enum Commands {
     /// track a train by its code.
     /// Note: if a certain train code corresponds to multiple trains, you will be asked to choose one
+    #[clap(visible_alias = "t")]
     Track {
         /// train code
         code: u32,
@@ -34,6 +35,7 @@ enum Commands {
     },
     /// find arrival and departure times of trains at a certain station.
     /// It is possible to search for a station by the beginning of its name; a prompt will ask to choose the desired station
+    #[clap(visible_alias = "s")]
     Station {
         /// station name or station code (e.g. "Milano Centrale" or "S01700")
         station: String,
@@ -48,6 +50,7 @@ enum Commands {
         departures: bool,
     },
     /// get information about line disruptions from Trenitalia
+    #[clap(visible_alias = "n")]
     News {
         /// verbose mode: print all news in expanded form.
         /// Default is to print only the titles and prompt user to select a news item to expand
