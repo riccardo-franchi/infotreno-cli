@@ -212,12 +212,11 @@ fn print_stops_info(stops: &[Value], delay: Option<i64>) {
         let scheduled_arrival_time = format_time(&stop["arrivo_teorico"]);
         let scheduled_departure_time = format_time(&stop["partenza_teorica"]);
 
-        println!("\n{} - platform {}", station.green(), platform);
-
         if stop_type != 0 {
             let actual_arrival_time = format_time(&stop["arrivoReale"]);
             let actual_departure_time = format_time(&stop["partenzaReale"]);
 
+            println!("\n{} - platform {}", station.green(), platform);
             if index != 0 {
                 println!(
                     "\tScheduled arrival time:   {} - actual: {}",
@@ -236,6 +235,7 @@ fn print_stops_info(stops: &[Value], delay: Option<i64>) {
             let estimated_departure_time =
                 format_estimated_time(&stop["partenza_teorica"], delay.unwrap_or(0));
 
+            println!("\n{} - platform {}", station, platform);
             println!(
                 "\tScheduled arrival time:   {} - estimated: {}",
                 scheduled_arrival_time,
