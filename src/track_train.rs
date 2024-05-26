@@ -179,10 +179,10 @@ async fn print_train_track_info(
     Ok(())
 }
 
-fn print_stops_info(stops: &Vec<Value>, delay: Option<i64>) {
+fn print_stops_info(stops: &[Value], delay: Option<i64>) {
     print!("Stops:");
 
-    for stop in stops {
+    for (index, stop) in stops.iter().enumerate() {
         let stop_type = stop["actualFermataType"].as_u64().unwrap();
 
         let station = stop["stazione"].as_str().unwrap();
@@ -212,16 +212,21 @@ fn print_stops_info(stops: &Vec<Value>, delay: Option<i64>) {
         let scheduled_arrival_time = format_time(&stop["arrivo_teorico"]);
         let scheduled_departure_time = format_time(&stop["partenza_teorica"]);
 
+        println!("\n{} - platform {}", station.green(), platform);
+
         if stop_type != 0 {
             let actual_arrival_time = format_time(&stop["arrivoReale"]);
             let actual_departure_time = format_time(&stop["partenzaReale"]);
 
+            if index != 0 {
+                println!(
+                    "\tScheduled arrival time:   {} - actual: {}",
+                    scheduled_arrival_time,
+                    actual_arrival_time.bold(),
+                );
+            }
             println!(
-                "\n{} - platform {}\n\tScheduled arrival time:   {} - actual: {}\n\tScheduled departure time: {} - actual: {}",
-                station.green(),
-                platform,
-                scheduled_arrival_time,
-                actual_arrival_time.bold(),
+                "\tScheduled departure time: {} - actual: {}",
                 scheduled_departure_time,
                 actual_departure_time.bold()
             );
@@ -232,14 +237,17 @@ fn print_stops_info(stops: &Vec<Value>, delay: Option<i64>) {
                 format_estimated_time(&stop["partenza_teorica"], delay.unwrap_or(0));
 
             println!(
-                "\n{} - platform {}\n\tScheduled arrival time:   {} - estimated: {}\n\tScheduled departure time: {} - estimated: {}",
-                station,
-                platform,
+                "\tScheduled arrival time:   {} - estimated: {}",
                 scheduled_arrival_time,
                 estimated_arrival_time.bold(),
-                scheduled_departure_time,
-                estimated_departure_time.bold()
             );
+            if index != stops.len() - 1 {
+                println!(
+                    "\tScheduled departure time: {} - estimated: {}",
+                    scheduled_departure_time,
+                    estimated_departure_time.bold()
+                );
+            }
         }
     }
 

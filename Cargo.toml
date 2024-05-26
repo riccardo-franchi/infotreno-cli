@@ -1,8 +1,8 @@
 [package]
 name = "infotreno-cli"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2021"
-description = "A simple CLI to get train information from Trenitalia"
+description = "A simple CLI to get train and railway information from Trenitalia"
 readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
