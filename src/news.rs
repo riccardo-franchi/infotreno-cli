@@ -14,6 +14,11 @@ pub async fn print_news(is_verbose: bool) -> Result<(), Box<dyn std::error::Erro
 
     let news = fragment.select(&selector).collect::<Vec<_>>();
 
+    if news.is_empty() {
+        println!("No news available.");
+        return Ok(());
+    }
+
     for (i, element) in news.iter().enumerate() {
         let mut children_iter = element.child_elements();
 
