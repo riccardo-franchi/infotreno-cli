@@ -11,7 +11,7 @@ pub async fn track(
     index: Option<usize>,
     print_stops: bool,
     auto_refresh: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), reqwest::Error> {
     let url = format!(
         "http://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/cercaNumeroTrenoTrenoAutocomplete/{}",
         code
@@ -40,7 +40,8 @@ pub async fn track(
     };
 
     if index >= lines.len() {
-        return Err("Invalid index.".into());
+        eprintln!("Invalid index.");
+        return Ok(());
     }
 
     let mut line_content = lines[index].split('|').nth(1).unwrap().split('-').skip(1);
@@ -71,7 +72,7 @@ async fn print_train_track_info(
     code: u32,
     timestamp: &str,
     print_stops: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), reqwest::Error> {
     let url = format!(
         "http://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/andamentoTreno/{}/{}/{}",
         origin_id, code, timestamp

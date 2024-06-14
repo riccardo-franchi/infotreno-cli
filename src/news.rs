@@ -3,7 +3,7 @@ use scraper::{Html, Selector};
 
 use crate::cli_input;
 
-pub async fn print_news(is_verbose: bool) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn print_news(is_verbose: bool) -> Result<(), reqwest::Error> {
     let url =
         "http://www.viaggiatreno.it/infomobilitamobile/resteasy/viaggiatreno/infomobilitaRSS/false";
 

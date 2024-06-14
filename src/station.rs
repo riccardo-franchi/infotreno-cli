@@ -10,7 +10,7 @@ pub async fn station(
     print_arrivals: bool,
     print_departures: bool,
     filter: Option<&str>,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), reqwest::Error> {
     let timestamp = Local::now().format("%b %d %Y %H:%M:%S").to_string();
 
     // If both print_arrivals and print_departures are false, print both
@@ -67,7 +67,8 @@ pub async fn station(
     };
 
     if index >= lines.len() {
-        return Err("Invalid index.".into());
+        eprintln!("Invalid index.");
+        return Ok(());
     }
 
     print_station_arrivals_departures(
@@ -86,7 +87,7 @@ async fn print_station_arrivals_departures(
     print_arrivals: bool,
     print_departures: bool,
     filter: Option<&str>,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), reqwest::Error> {
     let filter_train_type = |train: &serde_json::Value| {
         if filter.is_none() {
             return true;

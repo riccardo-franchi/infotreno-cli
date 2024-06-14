@@ -67,29 +67,27 @@ enum Commands {
 async fn main() {
     let cli = Cli::parse();
 
-    match cli.command {
+    let command_result = match cli.command {
         Commands::Track {
             code,
             index,
             stops,
             watch,
-        } => {
-            track_train::track(code, index, stops, watch)
-                .await
-                .expect("An error occurred");
-        }
+        } => track_train::track(code, index, stops, watch).await,
         Commands::Station {
             station,
             arrivals,
             departures,
             filter,
-        } => {
-            station::station(&station, arrivals, departures, filter.as_deref())
-                .await
-                .expect("An error occurred");
-        }
-        Commands::News { verbose } => {
-            news::print_news(verbose).await.expect("An error occurred");
+        } => station::station(&station, arrivals, departures, filter.as_deref()).await,
+        Commands::News { verbose } => news::print_news(verbose).await,
+    };
+
+    if let Err(e) = command_result {
+        if e.is_request() {
+            eprintln!("Cannot complete request.");
+        } else {
+            eprintln!("Error: {}", e);
         }
     }
 }
