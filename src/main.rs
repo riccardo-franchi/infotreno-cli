@@ -48,6 +48,9 @@ enum Commands {
         #[clap(long)]
         #[arg(default_value_t = false)]
         departures: bool,
+        /// filter results by train type code (e.g. "FR", "IC", "REG")
+        #[clap(short, long)]
+        filter: Option<String>,
     },
     /// get information about line disruptions from Trenitalia
     #[clap(visible_alias = "n")]
@@ -79,8 +82,9 @@ async fn main() {
             station,
             arrivals,
             departures,
+            filter,
         } => {
-            station::station(&station, arrivals, departures)
+            station::station(&station, arrivals, departures, filter.as_deref())
                 .await
                 .expect("An error occurred");
         }

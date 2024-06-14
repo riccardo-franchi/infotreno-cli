@@ -9,6 +9,7 @@ pub async fn station(
     name: &str,
     print_arrivals: bool,
     print_departures: bool,
+    filter: Option<&str>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let timestamp = Local::now().format("%b %d %Y %H:%M:%S").to_string();
 
@@ -27,6 +28,7 @@ pub async fn station(
             &timestamp,
             print_arrivals,
             print_departures,
+            filter,
         )
         .await;
     }
@@ -68,8 +70,14 @@ pub async fn station(
         return Err("Invalid index.".into());
     }
 
-    print_station_arrivals_departures(lines[index].1, &timestamp, print_arrivals, print_departures)
-        .await
+    print_station_arrivals_departures(
+        lines[index].1,
+        &timestamp,
+        print_arrivals,
+        print_departures,
+        filter,
+    )
+    .await
 }
 
 async fn print_station_arrivals_departures(
@@ -77,7 +85,17 @@ async fn print_station_arrivals_departures(
     timestamp: &str,
     print_arrivals: bool,
     print_departures: bool,
+    filter: Option<&str>,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    let filter_train_type = |train: &serde_json::Value| {
+        if filter.is_none() {
+            return true;
+        }
+
+        let train_type = train["categoriaDescrizione"].as_str().unwrap_or_default();
+        filter.unwrap().trim().to_lowercase() == train_type.trim().to_lowercase()
+    };
+
     if print_arrivals {
         let url = format!(
             "http://www.viaggiatreno.it/infomobilitamobile/resteasy/viaggiatreno/arrivi/{}/{}",
@@ -92,7 +110,7 @@ async fn print_station_arrivals_departures(
 
         let mut arrivals_table = Table::new("{:<}  {:<} {:>} {:<}  {:<}");
 
-        for train in arrivals {
+        for train in arrivals.iter().filter(|t| filter_train_type(t)) {
             let train_label = train["compNumeroTreno"].as_str().unwrap();
             let origin = train["origine"].as_str().unwrap();
             let arrival_time = train["compOrarioArrivo"].as_str().unwrap();
@@ -143,7 +161,7 @@ async fn print_station_arrivals_departures(
 
         let mut departures_table = Table::new("{:<}  {:<} {:>} {:<}  {:<}");
 
-        for train in departures {
+        for train in departures.iter().filter(|t| filter_train_type(t)) {
             let train_label = train["compNumeroTreno"].as_str().unwrap();
             let destination = train["destinazione"].as_str().unwrap();
             let departure_time = train["compOrarioPartenza"].as_str().unwrap();
