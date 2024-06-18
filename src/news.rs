@@ -56,11 +56,20 @@ pub async fn print_news(is_verbose: bool) -> Result<(), reqwest::Error> {
     println!("{}", "Select a news header to expand:".dimmed());
 
     loop {
-        let index = cli_input::get_index() - 1;
+        let index = cli_input::get_index();
+
+        if index == 0 {
+            return Ok(());
+        }
+
+        if index - 1 >= news.len() {
+            println!("Invalid index.");
+            continue;
+        }
 
         let info_text = news
-            .get(index)
-            .expect("Invalid index")
+            .get(index - 1)
+            .unwrap()
             .child_elements()
             .nth(1)
             .unwrap()
