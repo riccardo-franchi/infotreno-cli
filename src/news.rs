@@ -62,7 +62,7 @@ pub async fn print_news(is_verbose: bool) -> Result<(), reqwest::Error> {
             return Ok(());
         }
 
-        if index - 1 >= news.len() {
+        if index > news.len() {
             println!("Invalid index.");
             continue;
         }
