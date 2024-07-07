@@ -103,7 +103,7 @@ async fn print_train_track_info(
             "Train {}, {} \n{}\n",
             train_label.bold(),
             itinerary,
-            "Canceled.".red()
+            "Canceled.".bright_red()
         );
         return Ok(());
     }
