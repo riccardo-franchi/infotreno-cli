@@ -96,6 +96,18 @@ async fn print_train_track_info(
 
     let train_label = res["compNumeroTreno"].as_str().unwrap().trim();
 
+    let is_canceled = res["provvedimento"].as_u64().unwrap_or_default() == 1;
+
+    if is_canceled {
+        println!(
+            "Train {}, {} \n{}\n",
+            train_label.bold(),
+            itinerary,
+            "Canceled.".red()
+        );
+        return Ok(());
+    }
+
     let is_not_departured = res["nonPartito"].as_bool().unwrap_or_default();
 
     let stops = res["fermate"].as_array().unwrap();
@@ -134,10 +146,11 @@ async fn print_train_track_info(
     let last_update_station = res["stazioneUltimoRilevamento"].as_str().unwrap_or("--");
     let last_update_time = format_time(&res["oraUltimoRilevamento"]);
 
-    let is_arrived = stops.iter().last().expect("No stop found.")["actualFermataType"]
-        .as_u64()
-        .unwrap()
-        == 1;
+    let is_arrived = !stops.is_empty()
+        && stops.iter().last().unwrap()["actualFermataType"]
+            .as_u64()
+            .unwrap()
+            == 1;
 
     println!(
         "Train {}, {} \nLast update ({}):\n\t{}, {}",
