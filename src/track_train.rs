@@ -88,10 +88,14 @@ async fn print_train_track_info(
 
     let mut itinerary = format!("{} - {}", origin_station.cyan(), destination_station.cyan());
     if let Some(international_origin) = international_origin {
-        itinerary = format!("{} - {}", international_origin.cyan(), itinerary);
+        if international_origin != origin_station {
+            itinerary = format!("{} - {}", international_origin.cyan(), itinerary);
+        }
     }
     if let Some(international_destination) = international_destination {
-        itinerary = format!("{} - {}", itinerary, international_destination.cyan());
+        if international_destination != destination_station {
+            itinerary = format!("{} - {}", itinerary, international_destination.cyan());
+        }
     }
 
     let train_label = res["compNumeroTreno"].as_str().unwrap().trim();
