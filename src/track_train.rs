@@ -1,6 +1,7 @@
 use std::time::Duration;
 
-use chrono::NaiveTime;
+use chrono::{Local, NaiveTime, Offset, TimeZone};
+use chrono_tz::Europe::Rome;
 use colored::Colorize;
 use serde_json::Value;
 
@@ -295,11 +296,15 @@ fn format_estimated_time(time: &Value, delay: i64) -> String {
 
 fn parse_time(time: Option<u64>) -> Option<NaiveTime> {
     const SECONDS_PER_DAY: u32 = 86400;
-    const SECONDS_PER_2_HOURS: u32 = 7200;
+
+    let italian_timezone_offset = Rome
+        .offset_from_utc_datetime(&Local::now().naive_utc())
+        .fix()
+        .local_minus_utc() as u32;
 
     time.map(|t| {
         NaiveTime::from_num_seconds_from_midnight_opt(
-            ((t / 1000) as u32 + SECONDS_PER_2_HOURS) % SECONDS_PER_DAY,
+            ((t / 1000) as u32 + italian_timezone_offset) % SECONDS_PER_DAY,
             0,
         )
         .unwrap()

@@ -9,6 +9,7 @@ readme = "README.md"
 
 [dependencies]
 chrono = "0.4"
+chrono-tz = "0.10.0"
 clap = { version = "4.5", features = ["derive"] }
 colored = "2.1"
 regex = "1.10"
