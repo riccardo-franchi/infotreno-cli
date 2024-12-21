@@ -116,8 +116,11 @@ async fn print_station_arrivals_departures(
             let origin = train["origine"].as_str().unwrap();
             let arrival_time = train["compOrarioArrivo"].as_str().unwrap();
             let delay_number = train["ritardo"].as_i64().unwrap_or(0);
-            let delay = if delay_number != 0 {
+            dbg!(delay_number);
+            let delay = if delay_number > 0 {
                 format!("+{delay_number}")
+            } else if delay_number < 0 {
+                delay_number.to_string()
             } else {
                 "".to_string()
             };
@@ -167,8 +170,10 @@ async fn print_station_arrivals_departures(
             let destination = train["destinazione"].as_str().unwrap();
             let departure_time = train["compOrarioPartenza"].as_str().unwrap();
             let delay_number = train["ritardo"].as_i64().unwrap_or(0);
-            let delay = if delay_number != 0 {
+            let delay = if delay_number > 0 {
                 format!("+{delay_number}")
+            } else if delay_number < 0 {
+                delay_number.to_string()
             } else {
                 "".to_string()
             };
