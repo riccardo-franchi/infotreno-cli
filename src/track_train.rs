@@ -52,18 +52,12 @@ pub async fn track(
 
     if auto_refresh {
         loop {
-            //Clear console
-            print!("\x1B[2J\x1B[1;1H");
-            println!(
-                "{}",
-                "Watch mode: refreshing every minute. Press Ctrl+C to exit.".dimmed()
-            );
-            print_train_track_info(origin_id, code, timestamp, print_stops).await?;
+            print_train_track_info(origin_id, code, timestamp, print_stops, true).await?;
             tokio::time::sleep(Duration::from_secs(60)).await;
         }
     }
 
-    print_train_track_info(origin_id, code, timestamp, print_stops).await?;
+    print_train_track_info(origin_id, code, timestamp, print_stops, false).await?;
 
     Ok(())
 }
@@ -73,6 +67,7 @@ async fn print_train_track_info(
     code: u32,
     timestamp: &str,
     print_stops: bool,
+    is_watch_mode: bool,
 ) -> Result<(), reqwest::Error> {
     let url = format!(
         "http://www.viaggiatreno.it/infomobilita/resteasy/viaggiatreno/andamentoTreno/{}/{}/{}",
@@ -80,6 +75,17 @@ async fn print_train_track_info(
     );
 
     let res = reqwest::get(url).await?.json::<serde_json::Value>().await?;
+
+    // Clearing console after new request occurs
+    // With this approach, old tracking data is erased once new data is fetched, avoiding clearing the console and showing blank screen while waiting for new response, with slow connections.
+    if is_watch_mode {
+        //Clear console
+        print!("\x1B[2J\x1B[1;1H");
+        println!(
+            "{}",
+            "Watch mode: refreshing every minute. Press Ctrl+C to exit.".dimmed()
+        );
+    }
 
     let international_origin = res["origineEstera"].as_str();
     let international_destination = res["destinazioneEstera"].as_str();
