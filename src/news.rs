@@ -22,7 +22,9 @@ pub async fn print_news(is_verbose: bool) -> Result<(), reqwest::Error> {
     for (i, element) in news.iter().enumerate() {
         let mut children_iter = element.child_elements();
 
-        let title_element = children_iter.next().unwrap();
+        let Some(title_element) = children_iter.next() else {
+            break;
+        };
         let title = title_element.inner_html();
         let is_highlighted = title_element
             .value()
