@@ -112,7 +112,7 @@ async fn print_station_arrivals_departures(
         let mut arrivals_table = Table::new("{:<}  {:<} {:>} {:<}  {:<}");
 
         for train in arrivals.iter().filter(|t| filter_train_type(t)) {
-            let train_label = train["compNumeroTreno"].as_str().unwrap();
+            let train_label = train["compNumeroTreno"].as_str().unwrap().trim();
             let origin = train["origine"].as_str().unwrap();
             let arrival_time = train["compOrarioArrivo"].as_str().unwrap();
             let delay_number = train["ritardo"].as_i64().unwrap_or(0);
@@ -163,7 +163,7 @@ async fn print_station_arrivals_departures(
         let mut departures_table = Table::new("{:<}  {:<} {:>} {:<}  {:<}");
 
         for train in departures.iter().filter(|t| filter_train_type(t)) {
-            let train_label = train["compNumeroTreno"].as_str().unwrap();
+            let train_label = train["compNumeroTreno"].as_str().unwrap().trim();
             let destination = train["destinazione"].as_str().unwrap();
             let departure_time = train["compOrarioPartenza"].as_str().unwrap();
             let delay_number = train["ritardo"].as_i64().unwrap_or(0);
