@@ -1,6 +1,6 @@
 [package]
 name = "infotreno-cli"
-version = "0.4.11"
+version = "0.4.12"
 edition = "2024"
 description = "A simple CLI to get train and railway information from Trenitalia"
 readme = "README.md"
