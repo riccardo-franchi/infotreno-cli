@@ -1,7 +1,8 @@
-use chrono::Local;
+use chrono::Utc;
+use chrono_tz::Europe::Rome;
 use colored::Colorize;
 use regex::Regex;
-use tabular::{row, Table};
+use tabular::{Table, row};
 
 use crate::cli_input;
 
@@ -11,7 +12,10 @@ pub async fn station(
     print_departures: bool,
     filter: Option<&str>,
 ) -> Result<(), reqwest::Error> {
-    let timestamp = Local::now().format("%b %d %Y %H:%M:%S").to_string();
+    let timestamp = Utc::now()
+        .with_timezone(&Rome)
+        .format("%b %d %Y %H:%M:%S")
+        .to_string();
 
     // If both print_arrivals and print_departures are false, print both
     let (print_arrivals, print_departures) = if !(print_arrivals || print_departures) {
